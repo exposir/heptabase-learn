@@ -64,6 +64,14 @@
 - 哲学分野：自由主义（React）vs 中庸主义（Vue）vs 制度主义（Angular）
 - 未来展望：React Server Components的全栈统一
 
+**React与Rust职责边界的澄清：为什么Canvas API调用在Rust侧.md**: 技术澄清文档（约6000字）
+- 澄清"渲染"概念的歧义：DOM渲染（React）vs Canvas绘制（Rust）
+- 职责划分细节：React（应用层）vs Rust（性能层，计算+Canvas API调用）
+- 性能原理剖析：为何Canvas API调用应在Rust侧（避免跨语言边界开销）
+- 方案对比：Rust只计算（400次跨边界）vs Rust计算+绘制（1次跨边界，5倍性能）
+- 核心原则：最小化跨语言边界的数据传输，数据所有权优先放Rust侧
+- 实际应用指导：判断任务应该放React还是Rust的决策表
+
 ---
 
 ## 目录结构树
