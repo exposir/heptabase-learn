@@ -1,873 +1,708 @@
 <!--
 - [INPUT]: 依赖 README.md 第12.3章 WebAssembly 内容和 Rust+WebAssembly 实战文章的基础知识
-- [OUTPUT]: 输出企业级 Rust+Canvas 渲染器的完整架构设计，深度剖析表格、看板、甘特图的实现原理与难度真相（约15000字）
+- [OUTPUT]: 输出 React + Rust 混合架构的企业级渲染器设计，深度剖析职责划分与协作原理（约12000字）
 - [POS]: 位于 前端开发的历史与哲学 目录下的专题实战文章，专题3/N
 - [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
 # Rust 企业级前端渲染器架构设计：从表格到甘特图的工程实践
 
-> 纯 Canvas 渲染——当性能成为生死线，我们别无选择
+> React 管状态，Rust 管计算——扬长避短的混合架构哲学
 
-## 引言：为什么企业级项目必须选择 Rust + Canvas？
+## 引言：为什么是 React + Rust 混合架构？
 
-在《Rust+WebAssembly前端渲染器实战》一文中，我们实现了一个基础的虚拟 DOM 渲染器。但真实的企业级数据密集型应用，性能要求远超 DOM 的承载能力：
+### 问题的本质
 
-**极限性能场景**：
-- **超大表格**：10万+ 行 × 50 列数据，需要 60fps 流畅滚动
-- **实时协作**：多人同时编辑，毫秒级响应
-- **复杂甘特图**：数千任务 + 依赖关系，拖拽零延迟
-- **高频交互**：拖拽、缩放、排序，不能有任何卡顿
+企业级数据密集型应用面临两个矛盾需求：
 
-**DOM 的性能天花板**：
+**需求 1：极致性能**
+- 10万+ 行表格需要 60fps 流畅滚动
+- 复杂甘特图的拖拽零延迟
+- 实时协作的毫秒级响应
+
+**需求 2：开发效率**
+- 快速迭代业务逻辑
+- 状态管理的可维护性
+- 丰富的生态系统支持
+
+**DOM 的困境**：
 ```
-10万行表格 → DOM 节点：200万+ → 内存：2GB+ → 首次渲染：10秒+ → 卡死
+10万行表格 → DOM 节点：200万+ → 内存：2GB+ → 卡死
 ```
 
-**为什么 Canvas 是唯一选择**：
-1. **绘制性能**：Canvas 直接操作像素，无 DOM 树的 Reflow/Repaint 开销
-2. **内存占用**：Canvas 只有一个元素，DOM 需要数百万节点
-3. **可控性**：完全控制渲染逻辑，可做极致优化
-4. **成功案例**：Figma（百万用户设计工具）、Google Earth、AutoCAD Web
+**纯 Rust 的困境**：
+- 重建整个 GUI 系统（状态、事件、文本编辑...）
+- 开发周期：6-12 个月
+- 代码量：30,000+ 行
 
-**为什么必须用 Rust**：
-1. **计算密集**：虚拟滚动、碰撞检测、时间轴计算，需要接近 C++ 的性能
-2. **内存安全**：大规模状态管理，Rust 的所有权系统防止内存泄漏
-3. **并发能力**：未来可利用 Web Worker + SharedArrayBuffer 并行计算
-4. **类型安全**：编译时保证，减少运行时错误
+### 混合架构的智慧
 
-**本文前提**：
-- ✅ **纯 Rust + Canvas 是正确的技术选型**（参考 Figma 的成功）
-- ✅ **高开发成本是必要投资**（性能提升 10-100 倍）
-- ✅ **不讨论混合方案**（混合是性能妥协，不适合本文场景）
+**核心思想**：让 JavaScript 和 Rust 各自做擅长的事。
 
-**复杂度评估**：
-- 代码量：约 30,000 行 Rust 代码
-- 开发周期：6-12 个月（3-5 人团队）
-- 难度等级：⭐⭐⭐⭐⭐（五星，但难度是合理的）
+```
+┌─────────────────────────────────────────────────────────┐
+│                    React (JavaScript)                    │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │  状态管理    │  │  用户交互    │  │  业务逻辑    │  │
+│  │  (useState)  │  │  (onClick)   │  │  (过滤/排序) │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  │
+│         │                 │                 │          │
+│         └─────────────────┼─────────────────┘          │
+│                           ↓                            │
+│                 调用 Rust WebAssembly                   │
+└───────────────────────────┼─────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────┐
+│                 Rust (WebAssembly)                       │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │ 虚拟滚动计算 │  │  布局计算    │  │ Canvas 绘制  │  │
+│  │ (可见范围)   │  │ (行列坐标)   │  │ (像素渲染)   │  │
+│  └──────────────┘  └──────────────┘  └──────────────┘  │
+└─────────────────────────────────────────────────────────┘
+```
 
-**适合读者**：有 Rust 中级经验 + 前端架构基础 + 需要极致性能的开发者
+**职责划分**：
+
+| 层次 | React 负责 | Rust 负责 |
+|------|-----------|-----------|
+| **数据层** | 状态管理（Redux/Zustand）<br>数据获取（API 调用） | 数据结构优化<br>大规模数据处理 |
+| **交互层** | 事件监听（onClick/onScroll）<br>拖拽逻辑（react-dnd） | 命中测试计算<br>碰撞检测 |
+| **渲染层** | DOM 辅助元素（输入框、菜单）<br>Canvas 容器 | Canvas 绘制<br>虚拟滚动计算 |
+| **性能层** | useMemo/useCallback 优化 | 计算密集型算法<br>并行计算（Web Worker） |
+
+**关键洞察**：
+- **不是"Rust 取代 React"**，而是"Rust 加速 React"
+- **不是"重建浏览器"**，而是"优化性能热点"
+- **不是"全部用 Rust"**，而是"在需要的地方用 Rust"
 
 ---
 
-## 第一章：整体架构设计——Canvas 渲染的七模块体系
+## 第一章：架构设计原则——分层与解耦
 
-### 1.1 架构全景图
+### 1.1 为什么分层？
+
+**架构的本质**：管理复杂性的手段。
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         应用层                                    │
-│                  (Table / Kanban / Gantt)                        │
-└────────────────────────────┬────────────────────────────────────┘
-                             ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                    Module 3: 组件库                               │
-│  • TableComponent (虚拟滚动 + Canvas 绘制)                       │
-│  • KanbanComponent (拖拽 + Canvas 绘制)                          │
-│  • GanttComponent (时间轴 + Canvas 绘制)                         │
-└──────────┬─────────────┬──────────────┬─────────────────────────┘
-           ↓             ↓              ↓
-┌──────────────┐  ┌─────────────┐  ┌──────────────────────────────┐
-│  Module 4:   │  │  Module 5:  │  │  Module 6: 事件系统          │
-│  布局引擎    │  │  Canvas     │  │  • 坐标映射（像素→逻辑）     │
-│  • 文本测量  │  │  渲染引擎   │  │  • 命中测试（点击检测）      │
-│  • 行列计算  │  │  • 分层绘制 │  │  • 拖拽状态机                │
-└──────┬───────┘  │  • 脏区域   │  └─────────┬────────────────────┘
-       │          │  • 双缓冲   │            │
-       └──────────┴──────┬──────┘            │
-                         ↓                   │
-┌─────────────────────────────────────────────────────────────────┐
-│                    Module 2: 数据层                               │
-│  • ReactiveStore (响应式系统)                                     │
-│  • DataSource (过滤/排序/分页)                                    │
-└────────────────────────────┬────────────────────────────────────┘
-                             ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                    Module 1: 核心系统                             │
-│  • Scene Graph (场景图：逻辑渲染树)                              │
-│  • Component Trait                                                │
-│  • Lifecycle Hooks                                                │
-└────────────────────────────┬────────────────────────────────────┘
-                             ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                    Module 7: 性能监控                             │
-│  • FPS 监控 • 渲染耗时 • 命中测试优化                            │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────┐
+│         应用层 (React Components)         │  ← 业务逻辑
+├─────────────────────────────────────────┤
+│        接口层 (Hooks / API)              │  ← 抽象边界
+├─────────────────────────────────────────┤
+│     计算层 (Rust WebAssembly)            │  ← 性能热点
+├─────────────────────────────────────────┤
+│       渲染层 (Canvas API)                │  ← 底层 API
+└─────────────────────────────────────────┘
 ```
 
-### 1.2 Canvas 渲染的核心差异
+**分层的好处**：
+1. **关注点分离**：业务逻辑与性能优化解耦
+2. **可替换性**：可以用 JavaScript 实现替换 Rust 实现（降级方案）
+3. **可测试性**：每层可独立测试
+4. **渐进式迁移**：可以逐步将性能瓶颈迁移到 Rust
 
-**DOM 渲染 vs Canvas 渲染**：
+### 1.2 接口设计哲学
 
-| 维度           | DOM 渲染              | Canvas 渲染（本文方案）    |
-| -------------- | --------------------- | -------------------------- |
-| **渲染目标**   | HTML 元素树           | 像素缓冲区                 |
-| **事件处理**   | 浏览器原生支持        | 需要自己实现命中测试       |
-| **文本编辑**   | `<input>` 原生支持    | 需要自己实现光标/选区/IME  |
-| **布局计算**   | 浏览器自动 Reflow     | 需要自己计算坐标           |
-| **无障碍支持** | 原生 ARIA             | 需要额外 DOM 层辅助        |
-| **性能**       | 10万行表格卡死        | 100万行表格流畅（虚拟滚动）|
+**核心原则**：最小化跨语言边界的数据传输。
 
-**Canvas 的代价**：我们必须**重新实现浏览器的 UI 能力**。这是 5 星难度的根源。
+**反例（低效）**：
+```javascript
+// ❌ 每次渲染都传递整个数据集
+const renderTable = (rows) => {
+  const allCells = wasmRenderer.render(rows); // 传递 100MB 数据
+  drawToCanvas(allCells);
+};
+```
 
-### 1.3 模块职责划分
+**正例（高效）**：
+```javascript
+// ✅ 只传递必要的参数，数据保存在 Rust 侧
+const renderTable = () => {
+  wasmRenderer.render(scrollTop, viewportHeight); // 只传 2 个数字
+};
+```
 
-| 模块         | 核心职责                     | 关键技术                 | 代码量估算 |
-| ------------ | ---------------------------- | ------------------------ | ---------- |
-| **核心系统** | Scene Graph、组件生命周期    | Trait、泛型、生命周期    | 3000 行    |
-| **数据层**   | 响应式数据、状态管理         | 依赖追踪、观察者模式     | 3000 行    |
-| **组件库**   | 表格、看板、甘特图逻辑       | 虚拟滚动、拖拽、时间轴   | 10000 行   |
-| **布局引擎** | 文本测量、行列坐标计算       | Canvas measureText       | 4000 行    |
-| **渲染引擎** | Canvas 绘制、分层、脏区域    | CanvasRenderingContext2d | 5000 行    |
-| **事件系统** | 命中测试、拖拽状态机         | 几何计算、状态模式       | 3000 行    |
-| **性能监控** | FPS/渲染耗时追踪             | Performance API          | 2000 行    |
+**设计要点**：
+1. **数据所有权**：大数据集存储在 Rust 侧（WebAssembly 线性内存）
+2. **最小接口**：只传递必要的标量参数（数字、布尔值）
+3. **批量操作**：批量更新而非逐个元素更新
 
-**总计**：约 30,000 行 Rust 代码（比 DOM 方案多 50%，但性能提升 10-100 倍）
+### 1.3 数据流动方向
+
+```
+用户操作
+   ↓
+React 事件处理（onClick）
+   ↓
+更新 React State（setState）
+   ↓
+调用 Rust API（wasmRenderer.updateData）
+   ↓
+Rust 计算可见范围
+   ↓
+Rust 绘制到 Canvas
+   ↓
+用户看到更新
+```
+
+**单向数据流**：保证可预测性，避免循环依赖。
 
 ---
 
-## 第二章：核心系统（Module 1）——Scene Graph 取代 VNode
+## 第二章：虚拟滚动原理——性能飞跃的核心
 
-### 2.1 为什么 Canvas 不需要 VNode？
+### 2.1 为什么需要虚拟滚动？
 
-**DOM 渲染的 VNode**：
+**问题场景**：渲染 10 万行 × 20 列的表格
+
+**全量渲染的灾难**：
+```
+Canvas 绘制调用：10万行 × 20列 × 2次(背景+文本) = 400万次
+首次渲染时间：~5 秒
+内存占用：每行 200 字节 × 10万 = 20MB（持续增长）
+```
+
+**虚拟滚动的魔法**：
+```
+可见区域：20 行（1080p 屏幕）
+绘制调用：20 × 20 × 2 = 800 次
+首次渲染时间：< 16ms（60fps）
+内存占用：恒定 4KB（只存可见行）
+```
+
+**性能提升**：从 5 秒降至 16ms，提升 **300 倍**。
+
+### 2.2 虚拟滚动的数学模型
+
+**核心概念**：根据滚动位置，计算**可见范围**的行索引。
+
+```
+┌─────────────────────────────────┐
+│  Viewport (可见区域)             │  ← 用户看到的部分
+│  ┌─────────────────────────┐    │
+│  │ 行 1005                 │    │
+│  │ 行 1006                 │    │
+│  │ 行 1007                 │    │
+│  │ ...                     │    │
+│  │ 行 1025                 │    │
+│  └─────────────────────────┘    │
+└─────────────────────────────────┘
+     ↑
+总数据：100,000 行
+实际渲染：21 行（1005-1025）
+```
+
+**计算公式**：
+
 ```rust
-// DOM 渲染需要虚拟 DOM 树
-VNode::Element {
-    tag: "div",
-    children: vec![
-        VNode::Element { tag: "span", ... },
-        VNode::Text("Hello"),
-    ]
+// 固定行高场景
+start_index = floor(scroll_top / row_height)
+visible_count = ceil(viewport_height / row_height)
+end_index = start_index + visible_count
+
+// 缓冲区（避免滚动时白屏）
+start_index = max(0, start_index - buffer_size)
+end_index = min(total_rows, end_index + buffer_size)
+```
+
+**变高场景**（复杂甘特图）：
+```rust
+// 需要维护累积高度数组
+累积高度 = [0, 50, 120, 200, 250, ...]
+             ↑   ↑    ↑    ↑    ↑
+           行0  行1  行2  行3  行4
+
+// 二分查找可见范围
+start_index = binary_search(累积高度, scroll_top)
+end_index = binary_search(累积高度, scroll_top + viewport_height)
+```
+
+### 2.3 React + Rust 协作实现
+
+**React 侧（状态管理）**：
+
+```javascript
+import { useVirtualScroll } from './hooks/useVirtualScroll';
+
+function TableComponent({ data }) {
+  const {
+    scrollTop,           // 当前滚动位置
+    visibleRange,        // 可见范围 [start, end]
+    handleScroll,        // 滚动事件处理
+  } = useVirtualScroll({
+    totalRows: data.length,
+    rowHeight: 40,
+    viewportHeight: 600,
+  });
+
+  // 只渲染可见行
+  const visibleRows = data.slice(visibleRange[0], visibleRange[1]);
+
+  return (
+    <div onScroll={handleScroll}>
+      <canvas ref={canvasRef} />
+    </div>
+  );
 }
 ```
 
-**Canvas 渲染的 Scene Graph**：
+**Rust 侧（计算 + 绘制）**：
+
 ```rust
-// Canvas 只需要"绘制指令"的树
-SceneNode::Group {
-    children: vec![
-        SceneNode::Rect { x: 0, y: 0, width: 100, height: 50, fill: "#ccc" },
-        SceneNode::Text { x: 10, y: 30, text: "Hello", font: "14px Arial" },
-    ]
+#[wasm_bindgen]
+pub struct VirtualTable {
+    total_rows: usize,
+    row_height: f64,
+    viewport_height: f64,
+}
+
+#[wasm_bindgen]
+impl VirtualTable {
+    /// 计算可见范围
+    pub fn calculate_visible_range(&self, scroll_top: f64) -> Vec<usize> {
+        let start = (scroll_top / self.row_height).floor() as usize;
+        let count = (self.viewport_height / self.row_height).ceil() as usize;
+        let end = (start + count).min(self.total_rows);
+
+        vec![start, end]
+    }
+
+    /// 绘制可见行（调用 Canvas API）
+    pub fn render(&self, ctx: &CanvasRenderingContext2d, scroll_top: f64) {
+        let range = self.calculate_visible_range(scroll_top);
+        let offset_y = range[0] as f64 * self.row_height - scroll_top;
+
+        for row_idx in range[0]..range[1] {
+            let y = offset_y + (row_idx - range[0]) as f64 * self.row_height;
+            self.draw_row(ctx, row_idx, y);
+        }
+    }
+
+    fn draw_row(&self, ctx: &CanvasRenderingContext2d, row_idx: usize, y: f64) {
+        // 绘制行背景
+        ctx.set_fill_style(&"#f9f9f9".into());
+        ctx.fill_rect(0.0, y, 1920.0, self.row_height);
+
+        // 绘制文本（简化）
+        ctx.set_fill_style(&"#333".into());
+        ctx.set_font("14px Arial");
+        let _ = ctx.fill_text(&format!("Row {}", row_idx), 10.0, y + 25.0);
+    }
 }
 ```
 
-**核心差异**：
-- **VNode**：描述 HTML 结构，浏览器负责渲染
-- **SceneNode**：描述几何图形，我们自己负责绘制到 Canvas
+**调用示例**：
 
-### 2.2 Scene Graph 设计
+```javascript
+// 初始化
+const table = new VirtualTable(100000, 40, 600);
 
-```rust
-use std::collections::HashMap;
+// 滚动事件
+const handleScroll = (e) => {
+  const scrollTop = e.target.scrollTop;
+  table.render(canvasCtx, scrollTop);
+};
+```
 
-/// 场景节点（类似 VNode，但针对 Canvas）
-#[derive(Clone)]
-pub enum SceneNode {
-    /// 矩形
-    Rect {
-        id: String,
-        x: f64,
-        y: f64,
-        width: f64,
-        height: f64,
-        fill: String,
-        stroke: Option<String>,
-    },
+**关键点**：
+1. **React** 管理滚动状态（scrollTop）
+2. **Rust** 计算可见范围 + 绘制
+3. **数据** 存储在 Rust 侧（避免跨语言传输）
 
-    /// 文本
-    Text {
-        id: String,
-        x: f64,
-        y: f64,
-        text: String,
-        font: String,
-        color: String,
-    },
+---
 
-    /// 路径（用于绘制箭头、连线）
-    Path {
-        id: String,
-        commands: Vec<PathCommand>,
-        stroke: String,
-        stroke_width: f64,
-    },
+## 第三章：Canvas 渲染优化——分层与脏区域
 
-    /// 分组（类似 DOM 的 div）
-    Group {
-        id: String,
-        transform: Option<Transform>,
-        children: Vec<SceneNode>,
-    },
-}
+### 3.1 为什么需要分层？
 
-#[derive(Clone)]
-pub enum PathCommand {
-    MoveTo(f64, f64),
-    LineTo(f64, f64),
-    BezierCurveTo(f64, f64, f64, f64, f64, f64),
-}
+**问题**：每次交互都全量重绘整个 Canvas 太浪费。
 
-#[derive(Clone)]
-pub struct Transform {
-    pub translate_x: f64,
-    pub translate_y: f64,
-    pub scale: f64,
+**场景分析**：
+
+| 层级 | 变化频率 | 示例 |
+|------|----------|------|
+| **静态层** | 几乎不变 | 背景、网格线、表头 |
+| **动态层** | 数据变化时 | 表格单元格内容 |
+| **交互层** | 实时变化 | 拖拽预览、选区高亮、鼠标悬停 |
+
+**分层策略**：
+
+```
+┌─────────────────────────────────┐
+│    交互层 Canvas (最上层)        │  ← z-index: 3, 透明背景
+├─────────────────────────────────┤
+│    动态层 Canvas (中间层)        │  ← z-index: 2, 透明背景
+├─────────────────────────────────┤
+│    静态层 Canvas (底层)          │  ← z-index: 1, 不透明背景
+└─────────────────────────────────┘
+```
+
+**React 组件实现**：
+
+```javascript
+function LayeredCanvas() {
+  const staticRef = useRef();
+  const dynamicRef = useRef();
+  const interactiveRef = useRef();
+
+  useEffect(() => {
+    // 只渲染一次静态层
+    renderStaticLayer(staticRef.current);
+  }, []);
+
+  useEffect(() => {
+    // 数据变化时重绘动态层
+    renderDynamicLayer(dynamicRef.current, data);
+  }, [data]);
+
+  const handleMouseMove = (e) => {
+    // 实时更新交互层
+    renderInteractiveLayer(interactiveRef.current, e);
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <canvas ref={staticRef} style={{ position: 'absolute', zIndex: 1 }} />
+      <canvas ref={dynamicRef} style={{ position: 'absolute', zIndex: 2 }} />
+      <canvas ref={interactiveRef} style={{ position: 'absolute', zIndex: 3 }}
+              onMouseMove={handleMouseMove} />
+    </div>
+  );
 }
 ```
 
-### 2.3 组件接口（针对 Canvas）
+**性能收益**：
+- 鼠标移动时只重绘交互层（最轻量）
+- 数据变化时只重绘动态层（避免重绘静态背景）
+- 静态层永久缓存（零成本）
+
+### 3.2 脏区域优化
+
+**原理**：只重绘变化的矩形区域。
+
+```
+Canvas 全量重绘：fillRect(0, 0, 1920, 1080)  ← 207万像素
+脏区域重绘：fillRect(500, 300, 200, 100)      ← 2万像素（快 100 倍）
+```
+
+**Rust 实现概念**：
 
 ```rust
-use web_sys::CanvasRenderingContext2d;
+pub struct DirtyRegion {
+    rects: Vec<Rect>,
+}
 
-/// Canvas 组件 Trait
-pub trait CanvasComponent {
-    /// 生成场景图
-    fn render(&self) -> SceneNode;
+impl DirtyRegion {
+    pub fn mark_dirty(&mut self, rect: Rect) {
+        self.rects.push(rect);
 
-    /// 命中测试：判断点 (x, y) 是否在组件内
-    fn hit_test(&self, x: f64, y: f64) -> bool;
+        // 合并重叠矩形（避免过多小区域）
+        if self.rects.len() > 10 {
+            self.merge_overlapping();
+        }
+    }
 
-    /// 组件边界（用于优化渲染）
-    fn bounds(&self) -> Rect;
+    pub fn render(&self, ctx: &CanvasRenderingContext2d) {
+        for rect in &self.rects {
+            ctx.save();
+            ctx.begin_path();
+            ctx.rect(rect.x, rect.y, rect.width, rect.height);
+            ctx.clip(); // 裁剪到脏区域
 
-    /// 生命周期钩子
-    fn on_mount(&mut self) {}
-    fn on_update(&mut self) {}
-    fn on_unmount(&mut self) {}
+            // 只重绘这个区域
+            self.render_region(ctx, rect);
+
+            ctx.restore();
+        }
+
+        self.rects.clear(); // 清空脏标记
+    }
+}
+```
+
+**React 触发脏区域更新**：
+
+```javascript
+const updateCell = (rowIdx, colIdx, newValue) => {
+  // 更新数据
+  setData(prev => {
+    const newData = [...prev];
+    newData[rowIdx][colIdx] = newValue;
+    return newData;
+  });
+
+  // 标记脏区域
+  const rect = calculateCellRect(rowIdx, colIdx);
+  wasmRenderer.markDirty(rect.x, rect.y, rect.width, rect.height);
+  wasmRenderer.renderDirty();
+};
+```
+
+---
+
+## 第四章：React-Rust 通信机制
+
+### 4.1 数据传递策略
+
+**原则**：最小化序列化开销。
+
+**类型映射**：
+
+| JavaScript | Rust | 性能 | 适用场景 |
+|------------|------|------|----------|
+| Number | f64/i32 | ⭐⭐⭐⭐⭐ | 标量参数（滚动位置、索引） |
+| String | String | ⭐⭐⭐ | 短字符串（ID、标题） |
+| Array | Vec<T> | ⭐⭐ | 小数组（可见范围 [start, end]） |
+| Object | 自定义 Struct | ⭐⭐ | 配置对象 |
+| 大数组 | TypedArray | ⭐⭐⭐⭐ | 大规模数据（共享内存） |
+
+**高效传递大数据**：
+
+```javascript
+// ❌ 低效：每次都序列化整个数组
+wasmRenderer.setData(rows); // 传递 100MB 数据
+
+// ✅ 高效：一次性加载，后续只传索引
+wasmRenderer.loadData(rows); // 仅在初始化时调用
+wasmRenderer.updateRow(1005, newRowData); // 只传变化的行
+```
+
+**共享内存模式**（高级）：
+
+```rust
+#[wasm_bindgen]
+pub struct SharedTable {
+    data_ptr: *mut u8,
+    row_count: usize,
+}
+
+#[wasm_bindgen]
+impl SharedTable {
+    pub fn init(buffer: &mut [u8]) -> Self {
+        Self {
+            data_ptr: buffer.as_mut_ptr(),
+            row_count: buffer.len() / ROW_SIZE,
+        }
+    }
+
+    pub fn render(&self, ctx: &CanvasRenderingContext2d) {
+        unsafe {
+            let data = std::slice::from_raw_parts(self.data_ptr, self.row_count * ROW_SIZE);
+            // 直接访问共享内存，零拷贝
+        }
+    }
+}
+```
+
+### 4.2 异步调用模式
+
+**场景**：复杂计算可能阻塞主线程。
+
+**解决方案**：Web Worker + SharedArrayBuffer
+
+```javascript
+// React 主线程
+const worker = new Worker('table-worker.js');
+
+worker.postMessage({ type: 'INIT', data: tableData });
+
+worker.onmessage = (e) => {
+  if (e.data.type === 'RENDER_COMPLETE') {
+    // Rust 在 Worker 中完成计算
+    // 将结果写入 SharedArrayBuffer
+    // 主线程直接读取并绘制到 Canvas
+    drawFromSharedBuffer(canvasCtx);
+  }
+};
+```
+
+**Worker 内部**：
+
+```javascript
+// table-worker.js
+import init, { VirtualTable } from './pkg/table_wasm.js';
+
+let table;
+
+self.onmessage = async (e) => {
+  if (e.data.type === 'INIT') {
+    await init();
+    table = VirtualTable.new(e.data.data);
+  }
+
+  if (e.data.type === 'SCROLL') {
+    table.calculate_visible(e.data.scrollTop);
+    self.postMessage({ type: 'RENDER_COMPLETE' });
+  }
+};
+```
+
+---
+
+## 第五章：看板拖拽系统——命中测试与状态机
+
+### 5.1 拖拽的职责划分
+
+**React 负责**：
+- 监听鼠标事件（onMouseDown/Move/Up）
+- 管理拖拽状态（isDragging, draggedCardId）
+- 更新业务数据（移动卡片到新列）
+
+**Rust 负责**：
+- 命中测试（鼠标点击的是哪张卡片？）
+- 碰撞检测（拖拽时悬停在哪个列上？）
+- 绘制拖拽预览（半透明卡片跟随鼠标）
+
+### 5.2 命中测试原理
+
+**问题**：Canvas 是一整块像素，如何知道点击的是哪个元素？
+
+**解决方案**：遍历所有元素，判断点击坐标是否在范围内。
+
+```rust
+#[wasm_bindgen]
+pub struct Kanban {
+    cards: Vec<Card>,
 }
 
 #[derive(Clone)]
-pub struct Rect {
+pub struct Card {
+    pub id: String,
     pub x: f64,
     pub y: f64,
     pub width: f64,
     pub height: f64,
 }
-```
 
-**关键设计决策**：
-1. **SceneNode 不是真实 DOM**，只是绘制指令的抽象
-2. **命中测试**是手动实现的关键（DOM 免费提供，Canvas 需要自己算）
-3. **边界计算**用于脏区域优化（只重绘变化部分）
-
----
-
-## 第三章：数据层（Module 2）——响应式系统的原理
-
-（此部分与 DOM 版本基本相同，保留原文内容）
-
-### 3.1 响应式系统的挑战
-
-**核心问题**：如何自动追踪数据依赖，当数据变化时精确触发相关组件的重渲染？
-
-**JavaScript 的方案**：
-- Vue 2：`Object.defineProperty` 劫持 getter/setter
-- Vue 3：`Proxy` 代理对象
-- React：手动声明依赖（`useEffect` 的依赖数组）
-
-**Rust 的挑战**：
-- Rust 没有内置的属性访问拦截机制
-- 所有权系统要求明确的可变借用
-- 需要显式地追踪依赖关系
-
-### 3.2 依赖追踪的实现原理
-
-**核心思想**：使用**发布-订阅模式**，数据变化时通知所有订阅者。
-
-```rust
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::collections::HashMap;
-
-/// 观察者（订阅者）
-pub type Observer = Rc<RefCell<dyn FnMut()>>;
-
-/// 响应式存储
-pub struct ReactiveStore<T> {
-    value: Rc<RefCell<T>>,
-    observers: Rc<RefCell<Vec<Observer>>>,
-}
-
-impl<T> ReactiveStore<T> {
-    /// 创建响应式数据
-    pub fn new(initial: T) -> Self {
-        Self {
-            value: Rc::new(RefCell::new(initial)),
-            observers: Rc::new(RefCell::new(Vec::new())),
-        }
-    }
-
-    /// 读取数据
-    pub fn get(&self) -> std::cell::Ref<T> {
-        self.value.borrow()
-    }
-
-    /// 修改数据（触发通知）
-    pub fn set(&self, new_value: T) {
-        *self.value.borrow_mut() = new_value;
-        self.notify();
-    }
-
-    /// 修改数据（使用闭包）
-    pub fn update<F>(&self, updater: F)
-    where
-        F: FnOnce(&mut T),
-    {
-        {
-            let mut val = self.value.borrow_mut();
-            updater(&mut *val);
-        }
-        self.notify();
-    }
-
-    /// 订阅数据变化
-    pub fn subscribe<F>(&self, callback: F)
-    where
-        F: FnMut() + 'static,
-    {
-        self.observers.borrow_mut().push(Rc::new(RefCell::new(callback)));
-    }
-
-    /// 通知所有观察者
-    fn notify(&self) {
-        for observer in self.observers.borrow().iter() {
-            observer.borrow_mut()();
-        }
-    }
-}
-```
-
----
-
-## 第四章：虚拟滚动原理——Canvas 版本的性能飞跃
-
-### 4.1 虚拟滚动的必要性
-
-**问题场景**：渲染 10 万行 × 20 列的表格
-
-**Canvas 全量渲染**：
-```
-每行绘制：fillRect × 20 + fillText × 20 = 40 次 Canvas 调用
-10万行：400万次 Canvas 调用
-首次渲染时间：~5 秒（仍然太慢）
-```
-
-**Canvas 虚拟滚动**：
-```
-可见区域：20 行（1080p 屏幕）
-绘制调用：20 × 40 = 800 次
-首次渲染时间：< 16ms（60fps）
-内存占用：仅存储可见行的 SceneNode
-```
-
-**性能提升**：从 5 秒降至 16ms，提升 **300 倍**！
-
-### 4.2 虚拟滚动的核心算法
-
-```rust
-pub struct VirtualScroller {
-    // 配置
-    total_rows: usize,
-    row_height: f64,
-    viewport_height: f64,
-    buffer_size: usize,
-
-    // 状态
-    scroll_top: f64,
-    start_index: usize,
-    end_index: usize,
-}
-
-impl VirtualScroller {
-    pub fn new(total_rows: usize, row_height: f64, viewport_height: f64) -> Self {
-        let mut scroller = Self {
-            total_rows,
-            row_height,
-            viewport_height,
-            buffer_size: 5,
-            scroll_top: 0.0,
-            start_index: 0,
-            end_index: 0,
-        };
-        scroller.update_range();
-        scroller
-    }
-
-    /// 更新可见范围
-    pub fn update_scroll(&mut self, scroll_top: f64) {
-        self.scroll_top = scroll_top;
-        self.update_range();
-    }
-
-    /// 计算渲染范围
-    fn update_range(&mut self) {
-        let visible_start = (self.scroll_top / self.row_height).floor() as usize;
-        let visible_count = (self.viewport_height / self.row_height).ceil() as usize;
-        let visible_end = visible_start + visible_count;
-
-        self.start_index = visible_start.saturating_sub(self.buffer_size);
-        self.end_index = (visible_end + self.buffer_size).min(self.total_rows);
-    }
-
-    pub fn get_render_range(&self) -> (usize, usize) {
-        (self.start_index, self.end_index)
-    }
-
-    pub fn get_offset_y(&self) -> f64 {
-        self.start_index as f64 * self.row_height
-    }
-}
-```
-
-### 4.3 Canvas 表格组件的完整实现
-
-```rust
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
-
-pub struct TableComponent {
-    canvas: HtmlCanvasElement,
-    ctx: CanvasRenderingContext2d,
-    scroller: VirtualScroller,
-    data_source: DataSource<TableRow>,
-
-    // 布局参数
-    row_height: f64,
-    column_widths: Vec<f64>,
-}
-
-impl TableComponent {
-    /// 渲染表格到 Canvas
-    pub fn render(&self) {
-        // 1. 清空画布
-        self.ctx.clear_rect(0.0, 0.0, self.canvas.width() as f64, self.canvas.height() as f64);
-
-        // 2. 获取可见行范围
-        let (start, end) = self.scroller.get_render_range();
-        let visible_rows = self.data_source.get_page(0, end);
-        let offset_y = self.scroller.get_offset_y();
-
-        // 3. 绘制表头
-        self.draw_header();
-
-        // 4. 绘制可见行
-        for (i, row) in visible_rows[start..end].iter().enumerate() {
-            let y = (start + i) as f64 * self.row_height - offset_y + 40.0; // 40px 表头
-            self.draw_row(row, y);
-        }
-
-        // 5. 绘制网格线
-        self.draw_grid_lines(start, end, offset_y);
-    }
-
-    /// 绘制单行
-    fn draw_row(&self, row: &TableRow, y: f64) {
-        let mut x = 0.0;
-
-        for (col_idx, (col_name, value)) in row.cells.iter().enumerate() {
-            let width = self.column_widths[col_idx];
-
-            // 绘制单元格背景（偶数行高亮）
-            if row.id.parse::<usize>().unwrap_or(0) % 2 == 0 {
-                self.ctx.set_fill_style(&"#f9f9f9".into());
-                self.ctx.fill_rect(x, y, width, self.row_height);
-            }
-
-            // 绘制文本
-            self.ctx.set_fill_style(&"#333".into());
-            self.ctx.set_font("14px Arial");
-            let _ = self.ctx.fill_text(value, x + 10.0, y + self.row_height / 2.0 + 5.0);
-
-            x += width;
-        }
-    }
-
-    /// 绘制表头
-    fn draw_header(&self) {
-        self.ctx.set_fill_style(&"#e0e0e0".into());
-        self.ctx.fill_rect(0.0, 0.0, self.canvas.width() as f64, 40.0);
-
-        let mut x = 0.0;
-        let headers = vec!["ID", "Name", "Age", "Email"]; // 示例
-
-        for (i, header) in headers.iter().enumerate() {
-            let width = self.column_widths[i];
-
-            self.ctx.set_fill_style(&"#000".into());
-            self.ctx.set_font("bold 14px Arial");
-            let _ = self.ctx.fill_text(header, x + 10.0, 25.0);
-
-            x += width;
-        }
-    }
-
-    /// 绘制网格线
-    fn draw_grid_lines(&self, start: usize, end: usize, offset_y: f64) {
-        self.ctx.set_stroke_style(&"#ddd".into());
-        self.ctx.set_line_width(1.0);
-
-        // 水平线
-        for i in start..=end {
-            let y = i as f64 * self.row_height - offset_y + 40.0;
-            self.ctx.begin_path();
-            self.ctx.move_to(0.0, y);
-            self.ctx.line_to(self.canvas.width() as f64, y);
-            let _ = self.ctx.stroke();
-        }
-
-        // 垂直线
-        let mut x = 0.0;
-        for width in &self.column_widths {
-            self.ctx.begin_path();
-            self.ctx.move_to(x, 0.0);
-            self.ctx.line_to(x, self.canvas.height() as f64);
-            let _ = self.ctx.stroke();
-            x += width;
-        }
-    }
-}
-```
-
-**性能优化技巧**：
-1. **固定行高**：O(1) 计算可见范围
-2. **批量绘制**：一次性绘制所有可见行，减少 Canvas 状态切换
-3. **脏区域优化**（后续章节）：只重绘变化区域
-
----
-
-## 第五章：事件系统原理——Canvas 的命中测试挑战
-
-### 5.1 为什么 Canvas 事件处理如此复杂？
-
-**DOM 的免费午餐**：
-```javascript
-// DOM 自动处理事件
-<button onclick="handleClick">Click me</button>
-```
-浏览器自动知道：点击坐标 (x, y) 是否在按钮范围内。
-
-**Canvas 的手动劳动**：
-```rust
-// 我们必须自己判断点击位置
-canvas.addEventListener("click", (event) => {
-    let x = event.offsetX;
-    let y = event.offsetY;
-
-    // 遍历所有可交互元素，判断是否被点击
-    for cell in visible_cells {
-        if cell.contains(x, y) {
-            handle_cell_click(cell);
-        }
-    }
-});
-```
-
-这就是**命中测试**（Hit Testing）——Canvas 渲染器必须实现的核心功能。
-
-### 5.2 命中测试的实现
-
-```rust
-/// 命中测试：判断点 (x, y) 是否在矩形内
-pub fn point_in_rect(x: f64, y: f64, rect: &Rect) -> bool {
-    x >= rect.x
-        && x <= rect.x + rect.width
-        && y >= rect.y
-        && y <= rect.y + rect.height
-}
-
-/// 表格单元格的命中测试
-impl TableComponent {
-    pub fn hit_test_cell(&self, x: f64, y: f64) -> Option<(usize, usize)> {
-        // 1. 判断是否在表格范围内
-        if x < 0.0 || y < 40.0 {
-            return None; // 点击在表头上方
-        }
-
-        // 2. 计算行索引
-        let offset_y = self.scroller.get_offset_y();
-        let row_idx = ((y - 40.0 + offset_y) / self.row_height).floor() as usize;
-
-        if row_idx >= self.data_source.total_rows() {
-            return None;
-        }
-
-        // 3. 计算列索引
-        let mut col_idx = 0;
-        let mut cumulative_width = 0.0;
-
-        for (i, width) in self.column_widths.iter().enumerate() {
-            cumulative_width += width;
-            if x < cumulative_width {
-                col_idx = i;
-                break;
+#[wasm_bindgen]
+impl Kanban {
+    /// 命中测试：返回被点击卡片的 ID
+    pub fn hit_test(&self, x: f64, y: f64) -> Option<String> {
+        // 从上到下遍历（后绘制的在上层）
+        for card in self.cards.iter().rev() {
+            if x >= card.x && x <= card.x + card.width
+                && y >= card.y && y <= card.y + card.height {
+                return Some(card.id.clone());
             }
         }
-
-        Some((row_idx, col_idx))
-    }
-}
-```
-
-### 5.3 拖拽系统的状态机
-
-```rust
-#[derive(Clone, PartialEq)]
-pub enum DragState {
-    Idle,
-    Dragging {
-        item_id: String,
-        start_x: f64,
-        start_y: f64,
-        current_x: f64,
-        current_y: f64,
-    },
-}
-
-pub struct DragController {
-    state: ReactiveStore<DragState>,
-    canvas: HtmlCanvasElement,
-}
-
-impl DragController {
-    pub fn handle_mouse_down(&self, event: web_sys::MouseEvent) {
-        let x = event.offset_x() as f64;
-        let y = event.offset_y() as f64;
-
-        // 命中测试：找到被拖拽的元素
-        if let Some(item_id) = self.hit_test_draggable_item(x, y) {
-            self.state.set(DragState::Dragging {
-                item_id,
-                start_x: x,
-                start_y: y,
-                current_x: x,
-                current_y: y,
-            });
-        }
-    }
-
-    pub fn handle_mouse_move(&self, event: web_sys::MouseEvent) {
-        if let DragState::Dragging { item_id, start_x, start_y, .. } = &*self.state.get() {
-            let x = event.offset_x() as f64;
-            let y = event.offset_y() as f64;
-
-            self.state.set(DragState::Dragging {
-                item_id: item_id.clone(),
-                start_x: *start_x,
-                start_y: *start_y,
-                current_x: x,
-                current_y: y,
-            });
-
-            // 触发重绘（绘制拖拽预览）
-            self.request_redraw();
-        }
-    }
-
-    pub fn handle_mouse_up(&self) {
-        self.state.set(DragState::Idle);
-        self.request_redraw();
-    }
-
-    fn hit_test_draggable_item(&self, x: f64, y: f64) -> Option<String> {
-        // 遍历所有可拖拽元素，找到被点击的
-        // （实际实现需要空间索引优化，避免 O(n) 遍历）
         None
     }
+}
+```
 
-    fn request_redraw(&self) {
-        // 标记需要重绘
+**React 调用**：
+
+```javascript
+const handleMouseDown = (e) => {
+  const rect = canvasRef.current.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const cardId = kanban.hit_test(x, y);
+  if (cardId) {
+    setDraggingCard(cardId);
+  }
+};
+```
+
+**性能优化**：空间索引（R-tree）
+
+```rust
+// 将 O(n) 优化为 O(log n)
+pub struct SpatialIndex {
+    rtree: RTree<Card>,
+}
+
+impl SpatialIndex {
+    pub fn hit_test(&self, x: f64, y: f64) -> Option<String> {
+        self.rtree.locate_at_point(&[x, y])
+            .map(|card| card.id.clone())
     }
 }
 ```
 
-**性能优化**：
-- **空间索引**：使用 R-tree 或网格分区，将 O(n) 命中测试降至 O(log n)
-- **事件委托**：Canvas 只有一个元素，所有事件都在它上面，无需像 DOM 那样担心内存泄漏
+### 5.3 拖拽状态机
+
+**React 状态管理**：
+
+```javascript
+const [dragState, setDragState] = useState({
+  type: 'IDLE', // 'IDLE' | 'DRAGGING' | 'DROP_PREVIEW'
+  cardId: null,
+  startX: 0,
+  startY: 0,
+  currentX: 0,
+  currentY: 0,
+  targetColumnId: null,
+});
+
+const handleMouseMove = (e) => {
+  if (dragState.type === 'DRAGGING') {
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setDragState(prev => ({
+      ...prev,
+      currentX: x,
+      currentY: y,
+      targetColumnId: kanban.hit_test_column(x, y), // Rust 计算悬停列
+    }));
+
+    kanban.render_drag_preview(x, y, dragState.cardId); // Rust 绘制预览
+  }
+};
+
+const handleMouseUp = () => {
+  if (dragState.type === 'DRAGGING' && dragState.targetColumnId) {
+    // 更新业务数据
+    moveCard(dragState.cardId, dragState.targetColumnId);
+  }
+  setDragState({ type: 'IDLE', cardId: null });
+};
+```
+
+**Rust 绘制拖拽预览**：
+
+```rust
+pub fn render_drag_preview(&self, ctx: &CanvasRenderingContext2d, x: f64, y: f64, card_id: &str) {
+    let card = self.find_card(card_id);
+
+    // 绘制半透明卡片
+    ctx.save();
+    ctx.set_global_alpha(0.5);
+    ctx.set_fill_style(&"#fff".into());
+    ctx.fill_rect(x, y, card.width, card.height);
+    ctx.set_fill_style(&"#333".into());
+    ctx.fill_text(&card.title, x + 10.0, y + 30.0);
+    ctx.restore();
+
+    // 绘制目标列高亮
+    if let Some(target_col) = self.find_column_at(x, y) {
+        ctx.set_fill_style(&"rgba(0, 120, 215, 0.1)".into());
+        ctx.fill_rect(target_col.x, target_col.y, target_col.width, target_col.height);
+    }
+}
+```
 
 ---
 
-## 第六章：Canvas 渲染引擎——分层绘制与脏区域优化
+## 第六章：甘特图时间轴——坐标变换的艺术
 
-### 6.1 分层绘制原理
+### 6.1 时间轴的数学模型
 
-**问题**：每次数据变化都重绘整个 Canvas 太浪费。
-
-**解决方案**：将 Canvas 分为多层：
-1. **静态层**：背景、网格线（不常变化）
-2. **动态层**：数据单元格（频繁变化）
-3. **交互层**：拖拽预览、选区高亮（实时变化）
-
-```rust
-pub struct LayeredCanvas {
-    // 三个独立的 Canvas 元素，叠加在一起
-    static_canvas: HtmlCanvasElement,
-    dynamic_canvas: HtmlCanvasElement,
-    interactive_canvas: HtmlCanvasElement,
-
-    static_ctx: CanvasRenderingContext2d,
-    dynamic_ctx: CanvasRenderingContext2d,
-    interactive_ctx: CanvasRenderingContext2d,
-
-    // 脏标记
-    static_dirty: bool,
-    dynamic_dirty: bool,
-    interactive_dirty: bool,
-}
-
-impl LayeredCanvas {
-    pub fn render(&mut self) {
-        // 只重绘脏层
-        if self.static_dirty {
-            self.render_static_layer();
-            self.static_dirty = false;
-        }
-
-        if self.dynamic_dirty {
-            self.render_dynamic_layer();
-            self.dynamic_dirty = false;
-        }
-
-        if self.interactive_dirty {
-            self.render_interactive_layer();
-            self.interactive_dirty = false;
-        }
-    }
-
-    fn render_static_layer(&self) {
-        // 绘制背景、网格线
-        self.static_ctx.clear_rect(0.0, 0.0, 1920.0, 1080.0);
-        // ... 绘制逻辑
-    }
-
-    fn render_dynamic_layer(&self) {
-        // 绘制数据单元格
-        self.dynamic_ctx.clear_rect(0.0, 0.0, 1920.0, 1080.0);
-        // ... 绘制逻辑
-    }
-
-    fn render_interactive_layer(&self) {
-        // 绘制拖拽预览
-        self.interactive_ctx.clear_rect(0.0, 0.0, 1920.0, 1080.0);
-        // ... 绘制逻辑
-    }
-
-    /// 标记层为脏
-    pub fn mark_dirty(&mut self, layer: Layer) {
-        match layer {
-            Layer::Static => self.static_dirty = true,
-            Layer::Dynamic => self.dynamic_dirty = true,
-            Layer::Interactive => self.interactive_dirty = true,
-        }
-    }
-}
-
-pub enum Layer {
-    Static,
-    Dynamic,
-    Interactive,
-}
-```
-
-### 6.2 脏区域优化
-
-**问题**：即使分层，重绘整个 Canvas 仍然慢。
-
-**解决方案**：只重绘变化的矩形区域。
-
-```rust
-pub struct DirtyRegion {
-    regions: Vec<Rect>,
-}
-
-impl DirtyRegion {
-    pub fn new() -> Self {
-        Self { regions: Vec::new() }
-    }
-
-    /// 标记区域为脏
-    pub fn mark_dirty(&mut self, rect: Rect) {
-        // 合并重叠的矩形（避免过多小区域）
-        self.regions.push(rect);
-        self.merge_overlapping();
-    }
-
-    /// 合并重叠矩形
-    fn merge_overlapping(&mut self) {
-        // 简化实现：如果超过 10 个区域，直接合并为整个画布
-        if self.regions.len() > 10 {
-            self.regions.clear();
-            self.regions.push(Rect {
-                x: 0.0,
-                y: 0.0,
-                width: 1920.0,
-                height: 1080.0,
-            });
-        }
-    }
-
-    /// 获取所有脏区域
-    pub fn get_dirty_regions(&self) -> &[Rect] {
-        &self.regions
-    }
-
-    /// 清空脏区域
-    pub fn clear(&mut self) {
-        self.regions.clear();
-    }
-}
-
-// 使用示例
-impl TableComponent {
-    pub fn render_dirty_regions(&self, dirty: &DirtyRegion) {
-        for rect in dirty.get_dirty_regions() {
-            // 1. 保存 Canvas 状态
-            self.ctx.save();
-
-            // 2. 裁剪到脏区域
-            self.ctx.begin_path();
-            self.ctx.rect(rect.x, rect.y, rect.width, rect.height);
-            self.ctx.clip();
-
-            // 3. 清空并重绘该区域
-            self.ctx.clear_rect(rect.x, rect.y, rect.width, rect.height);
-            self.render_region(rect);
-
-            // 4. 恢复 Canvas 状态
-            self.ctx.restore();
-        }
-    }
-
-    fn render_region(&self, rect: &Rect) {
-        // 只绘制与该区域相交的元素
-        // ...
-    }
-}
-```
-
-**性能对比**：
-- 全量重绘：~16ms（60fps 临界）
-- 脏区域重绘：~2ms（可支持 500fps）
-
----
-
-## 第七章：时间轴算法——甘特图的核心计算
-
-（此部分与 DOM 版本基本相同，保留原文内容）
-
-### 7.1 时间轴的数学模型
-
-甘特图本质上是**时间轴到像素坐标的映射**：
+**核心**：时间域 ↔ 像素域的双向映射。
 
 ```
-时间域：[start_date, end_date]
-像素域：[0, canvas_width]
+时间域：[2024-01-01, 2024-12-31]  (365 天)
+像素域：[0, 1920]                 (Canvas 宽度)
 
-映射函数：pixel_x = (date - start_date) / (end_date - start_date) * canvas_width
+映射函数：
+pixel_x = (date - start_date) / (end_date - start_date) * canvas_width
+date = start_date + (pixel_x / canvas_width) * (end_date - start_date)
 ```
 
-**实现**：
+**Rust 实现**：
+
 ```rust
 use chrono::{DateTime, Utc, Duration};
 
@@ -878,208 +713,199 @@ pub struct TimeAxis {
 }
 
 impl TimeAxis {
-    pub fn new(start: DateTime<Utc>, end: DateTime<Utc>, width: f64) -> Self {
-        Self {
-            start_date: start,
-            end_date: end,
-            canvas_width: width,
-        }
-    }
-
     /// 时间 → 像素
     pub fn date_to_pixel(&self, date: DateTime<Utc>) -> f64 {
-        let total_duration = self.end_date - self.start_date;
-        let offset_duration = date - self.start_date;
-
-        let ratio = offset_duration.num_seconds() as f64 / total_duration.num_seconds() as f64;
-        ratio * self.canvas_width
+        let total_seconds = (self.end_date - self.start_date).num_seconds() as f64;
+        let offset_seconds = (date - self.start_date).num_seconds() as f64;
+        (offset_seconds / total_seconds) * self.canvas_width
     }
 
     /// 像素 → 时间
     pub fn pixel_to_date(&self, pixel_x: f64) -> DateTime<Utc> {
-        let total_duration = self.end_date - self.start_date;
+        let total_seconds = (self.end_date - self.start_date).num_seconds() as f64;
         let ratio = pixel_x / self.canvas_width;
-
-        let offset_seconds = (total_duration.num_seconds() as f64 * ratio) as i64;
+        let offset_seconds = (total_seconds * ratio) as i64;
         self.start_date + Duration::seconds(offset_seconds)
     }
 }
 ```
 
-### 7.2 Canvas 甘特图绘制
+### 6.2 缩放功能
+
+**React 处理滚轮事件**：
+
+```javascript
+const handleWheel = (e) => {
+  e.preventDefault();
+  const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+
+  // 计算鼠标位置对应的日期（保持不变）
+  const mouseX = e.clientX - rect.left;
+  const anchorDate = gantt.pixel_to_date(mouseX);
+
+  // 调用 Rust 更新时间轴
+  gantt.zoom(zoomFactor, anchorDate);
+  gantt.render();
+};
+```
+
+**Rust 更新时间轴**：
 
 ```rust
-impl GanttChart {
-    pub fn render(&self, ctx: &CanvasRenderingContext2d) {
-        // 1. 绘制时间轴刻度
-        self.render_time_axis(ctx);
+pub fn zoom(&mut self, factor: f64, anchor_date: DateTime<Utc>) {
+    let old_duration = self.end_date - self.start_date;
+    let new_duration = old_duration / factor as i32;
 
-        // 2. 绘制任务条
-        for (i, task) in self.tasks.iter().enumerate() {
-            let y = i as f64 * self.row_height;
-            self.render_task_bar(ctx, task, y);
-        }
+    // 保持 anchor_date 在相同的像素位置
+    let anchor_pixel = self.date_to_pixel(anchor_date);
+    let ratio = anchor_pixel / self.canvas_width;
 
-        // 3. 绘制依赖关系箭头
-        for task in &self.tasks {
-            for dep_id in &task.dependencies {
-                if let Some(dep_task) = self.find_task(dep_id) {
-                    self.render_dependency_arrow(ctx, dep_task, task);
-                }
-            }
-        }
-    }
+    self.start_date = anchor_date - new_duration * ratio as i32;
+    self.end_date = self.start_date + new_duration;
+}
+```
 
-    fn render_task_bar(&self, ctx: &CanvasRenderingContext2d, task: &GanttTask, y: f64) {
-        let x_start = self.time_axis.date_to_pixel(task.start);
-        let x_end = self.time_axis.date_to_pixel(task.end);
-        let width = x_end - x_start;
+### 6.3 依赖关系绘制
 
-        // 绘制任务条背景
-        ctx.set_fill_style(&"#4CAF50".into());
-        ctx.fill_rect(x_start, y, width, 30.0);
+**React 提供依赖数据**：
 
-        // 绘制进度
-        ctx.set_fill_style(&"#2E7D32".into());
-        ctx.fill_rect(x_start, y, width * task.progress as f64, 30.0);
+```javascript
+const dependencies = [
+  { from: 'task-1', to: 'task-2' },
+  { from: 'task-2', to: 'task-3' },
+];
 
-        // 绘制任务名称
-        ctx.set_fill_style(&"white".into());
-        ctx.set_font("14px Arial");
-        let _ = ctx.fill_text(&task.name, x_start + 5.0, y + 20.0);
-    }
+gantt.render_dependencies(dependencies);
+```
 
-    fn render_dependency_arrow(
-        &self,
-        ctx: &CanvasRenderingContext2d,
-        from: &GanttTask,
-        to: &GanttTask,
-    ) {
-        let from_x = self.time_axis.date_to_pixel(from.end);
-        let to_x = self.time_axis.date_to_pixel(to.start);
+**Rust 绘制箭头**：
 
-        // 绘制贝塞尔曲线（简化为直线）
+```rust
+pub fn render_dependencies(&self, ctx: &CanvasRenderingContext2d, deps: Vec<Dependency>) {
+    for dep in deps {
+        let from_task = self.find_task(&dep.from);
+        let to_task = self.find_task(&dep.to);
+
+        let from_x = self.time_axis.date_to_pixel(from_task.end);
+        let to_x = self.time_axis.date_to_pixel(to_task.start);
+
+        // 绘制贝塞尔曲线箭头
         ctx.begin_path();
         ctx.set_stroke_style(&"#999".into());
-        ctx.set_line_width(2.0);
-        ctx.move_to(from_x, 15.0);
-        ctx.line_to(to_x, 15.0);
-        let _ = ctx.stroke();
+        ctx.move_to(from_x, from_task.y);
+        ctx.bezier_curve_to(
+            from_x + 50.0, from_task.y,
+            to_x - 50.0, to_task.y,
+            to_x, to_task.y
+        );
+        ctx.stroke();
+
+        // 绘制箭头头部
+        self.draw_arrow_head(ctx, to_x, to_task.y);
     }
 }
 ```
 
 ---
 
-## 第八章：性能监控与调优实践
+## 第七章：性能监控与调优
 
-（此部分与 DOM 版本基本相同，保留原文内容）
+### 7.1 性能指标采集
 
-### 8.1 性能指标采集
+**React 侧（FPS 监控）**：
+
+```javascript
+import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
+
+function TableComponent() {
+  const { fps, renderTime } = usePerformanceMonitor();
+
+  return (
+    <div>
+      <div>FPS: {fps} | Render: {renderTime}ms</div>
+      <Canvas />
+    </div>
+  );
+}
+```
+
+**Rust 侧（精确计时）**：
 
 ```rust
 use web_sys::Performance;
-use std::collections::HashMap;
 
 pub struct PerformanceMonitor {
     perf: Performance,
-    metrics: HashMap<String, Vec<f64>>,
 }
 
 impl PerformanceMonitor {
-    pub fn new() -> Result<Self, JsValue> {
-        let window = web_sys::window().ok_or("No window")?;
-        let perf = window.performance().ok_or("No performance API")?;
-
-        Ok(Self {
-            perf,
-            metrics: HashMap::new(),
-        })
-    }
-
-    /// 测量代码块执行时间
-    pub fn measure<F, R>(&mut self, name: &str, f: F) -> R
+    pub fn measure<F, R>(&self, name: &str, f: F) -> R
     where
         F: FnOnce() -> R,
     {
         let start = self.perf.now();
         let result = f();
         let end = self.perf.now();
-        let duration = end - start;
 
-        self.metrics
-            .entry(name.to_string())
-            .or_insert_with(Vec::new)
-            .push(duration);
-
+        web_sys::console::log_1(&format!("{}: {:.2}ms", name, end - start).into());
         result
-    }
-
-    /// 获取平均值
-    pub fn get_average(&self, name: &str) -> Option<f64> {
-        self.metrics.get(name).map(|values| {
-            let sum: f64 = values.iter().sum();
-            sum / values.len() as f64
-        })
     }
 }
 ```
 
+### 7.2 性能优化清单
+
+| 优化项 | React 职责 | Rust 职责 | 预期收益 |
+|--------|-----------|-----------|----------|
+| **虚拟滚动** | 管理滚动状态 | 计算可见范围 + 绘制 | 100-1000x |
+| **分层渲染** | 管理多个 Canvas | 按层绘制 | 5-10x |
+| **脏区域** | 标记变化区域 | 只重绘脏区域 | 10-50x |
+| **对象池** | - | 复用绘制对象 | 2-3x |
+| **批量更新** | 批量 setState | 批量绘制 | 2-5x |
+| **Web Worker** | 主线程协调 | Worker 中计算 | 1.5-2x |
+
 ---
 
-## 第九章：工程实践与部署
+## 第八章：工程实践——项目结构与构建
 
-### 9.1 项目结构
+### 8.1 项目结构
 
 ```
-rust-canvas-renderer/
-├── Cargo.toml
-├── src/
-│   ├── lib.rs              # 入口
-│   ├── core/
-│   │   ├── mod.rs
-│   │   ├── scene_graph.rs  # SceneNode 定义
-│   │   └── component.rs    # Component Trait
-│   ├── data/
-│   │   ├── mod.rs
-│   │   ├── reactive.rs     # 响应式系统
-│   │   └── datasource.rs   # 数据源
+project/
+├── rust-renderer/              # Rust WebAssembly 模块
+│   ├── Cargo.toml
+│   ├── src/
+│   │   ├── lib.rs              # wasm-bindgen 入口
+│   │   ├── table.rs            # 表格渲染逻辑
+│   │   ├── kanban.rs           # 看板渲染逻辑
+│   │   ├── gantt.rs            # 甘特图渲染逻辑
+│   │   └── utils/
+│   │       ├── virtual_scroll.rs
+│   │       └── hit_test.rs
+│   └── pkg/                    # 编译产物（wasm-pack）
+│
+├── src/                        # React 应用
 │   ├── components/
-│   │   ├── mod.rs
-│   │   ├── table.rs        # 表格组件
-│   │   ├── kanban.rs       # 看板组件
-│   │   └── gantt.rs        # 甘特图组件
-│   ├── render/
-│   │   ├── mod.rs
-│   │   ├── canvas_renderer.rs  # Canvas 渲染器
-│   │   ├── layered_canvas.rs   # 分层 Canvas
-│   │   └── dirty_region.rs     # 脏区域管理
-│   ├── events/
-│   │   ├── mod.rs
-│   │   ├── hit_test.rs     # 命中测试
-│   │   └── drag.rs         # 拖拽系统
-│   ├── layout/
-│   │   ├── mod.rs
-│   │   └── text_measure.rs # 文本测量
-│   └── perf/
-│       ├── mod.rs
-│       └── monitor.rs      # 性能监控
-├── www/
-│   ├── index.html
-│   ├── index.js
-│   └── styles.css
-└── tests/
-    ├── table_test.rs
-    ├── hit_test_bench.rs
-    └── render_bench.rs
+│   │   ├── Table.jsx           # React 表格组件
+│   │   ├── Kanban.jsx          # React 看板组件
+│   │   └── Gantt.jsx           # React 甘特图组件
+│   ├── hooks/
+│   │   ├── useVirtualScroll.js
+│   │   ├── useCanvasRenderer.js
+│   │   └── usePerformanceMonitor.js
+│   └── wasm/
+│       └── index.js            # Wasm 模块加载器
+│
+└── package.json
 ```
 
-### 9.2 构建与优化
+### 8.2 构建配置
+
+**Rust 侧（Cargo.toml）**：
 
 ```toml
-# Cargo.toml
 [package]
-name = "rust-canvas-renderer"
+name = "rust-renderer"
 version = "0.1.0"
 edition = "2021"
 
@@ -1089,277 +915,285 @@ crate-type = ["cdylib"]
 [dependencies]
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = [
-    "console",
-    "Window",
-    "Document",
-    "HtmlCanvasElement",
     "CanvasRenderingContext2d",
-    "MouseEvent",
-    "WheelEvent",
+    "HtmlCanvasElement",
     "Performance",
 ] }
 chrono = { version = "0.4", features = ["wasmbind"] }
-serde = { version = "1.0", features = ["derive"] }
-serde-wasm-bindgen = "0.6"
 
 [profile.release]
-opt-level = "z"         # 优化体积
-lto = true              # 链接时优化
-codegen-units = 1       # 单编译单元（更好的优化）
-panic = "abort"         # 减少 panic 处理代码
-strip = true            # 去除调试符号
+opt-level = "z"        # 优化体积
+lto = true             # 链接时优化
+codegen-units = 1      # 单编译单元
+panic = "abort"        # 减少 panic 代码
 ```
 
-**构建命令**：
+**构建脚本**：
+
 ```bash
+# 构建 Wasm
+cd rust-renderer
 wasm-pack build --target web --release
-wasm-opt -Oz -o pkg/rust_canvas_renderer_bg.wasm pkg/rust_canvas_renderer_bg.wasm
+
+# 体积优化
+wasm-opt -Oz -o pkg/rust_renderer_bg.wasm pkg/rust_renderer_bg.wasm
 ```
 
-**优化结果**：
-- 未优化：~500KB
-- 优化后：~120KB
-- gzip 后：~40KB
+**React 集成**：
+
+```javascript
+// src/wasm/index.js
+import init, { VirtualTable, Kanban, Gantt } from '../../rust-renderer/pkg';
+
+let wasmInitialized = false;
+
+export async function initWasm() {
+  if (!wasmInitialized) {
+    await init();
+    wasmInitialized = true;
+  }
+}
+
+export { VirtualTable, Kanban, Gantt };
+```
+
+### 8.3 开发周期评估
+
+**混合架构（React + Rust）**：
+
+| 阶段 | 工作内容 | 周期 | 人力 |
+|------|---------|------|------|
+| **阶段 1** | 基础架构 + 虚拟滚动 | 4 周 | 2 人 |
+| **阶段 2** | 表格组件 + 基础交互 | 4 周 | 2 人 |
+| **阶段 3** | 看板 + 拖拽系统 | 4 周 | 2 人 |
+| **阶段 4** | 甘特图 + 时间轴 | 4 周 | 2 人 |
+| **阶段 5** | 性能优化 + 测试 | 4 周 | 3 人 |
+
+**总计**：20 周（5 个月），2-3 人团队
+
+**代码量估算**：
+- Rust：~5,000 行（计算 + 渲染核心）
+- React：~8,000 行（状态 + 交互 + 业务）
+- 总计：~13,000 行
+
+**难度评级**：⭐⭐⭐（三星，合理难度）
 
 ---
 
-## 第十章：难度真相——为什么是 5 星难度？
+## 第九章：难度真相——为什么是三星而非五星？
 
-### 10.1 核心困惑：渲染本身不难，为何难度这么高？
+### 9.1 混合架构的降维打击
 
-哥问的问题直击本质：**"对于 rust 这样基础语言，实现渲染这样简单的需求这么难，是不是并没有这么难？"**
+**纯 Rust 方案（五星）**：
+- 重建文本编辑器：5,000 行
+- 重建事件系统：3,000 行
+- 重建布局引擎：4,000 行
+- 重建无障碍层：2,000 行
+- **总计**：~30,000 行 Rust
 
-**答案**：**渲染本身确实简单，难的是重新实现浏览器的 GUI 系统。**
+**React + Rust 方案（三星）**：
+- Rust 只做计算 + 绘制：~5,000 行
+- React 复用生态：状态管理（Redux）、拖拽（react-dnd）、表单（浏览器原生）
+- **总计**：~5,000 行 Rust + ~8,000 行 React
 
-### 10.2 难度分解：Canvas 渲染的 5 大挑战
+**降维原因**：
+1. **不需要重建 GUI**：React 提供完整的状态管理和事件系统
+2. **不需要文本编辑器**：表格编辑用 React `<input>`，Rust 只画结果
+3. **不需要拖拽系统**：用 `react-dnd` 管理拖拽逻辑，Rust 只画预览
+4. **不需要无障碍层**：React DOM 天然支持 ARIA
 
-#### 挑战 1：文本渲染与编辑（⭐⭐⭐⭐⭐）
+### 9.2 Rust 的真正价值
 
-**问题**：Canvas 的 `fillText` 只能绘制静态文本，无法编辑。
+**不是"取代 React"，而是"加速 React"**。
 
-**必须实现的功能**：
-1. **光标渲染**：闪烁的竖线，需要定时器
-2. **文本选区**：拖拽选择文字，高亮显示
-3. **IME 支持**（输入法编辑器）：中文、日文输入需要候选框
-4. **复制/粘贴**：需要隐藏的 `<textarea>` 辅助
-5. **撤销/重做**：维护编辑历史栈
+Rust 专注于：
+1. **计算密集**：虚拟滚动的范围计算（O(log n) 二分查找）
+2. **渲染密集**：Canvas 绘制（每秒数千次 fillRect/fillText）
+3. **内存优化**：大数据集存储（100万行 × 20列 = 2000万单元格）
 
-**代码量**：~5000 行（一个完整的文本编辑器）
-
-**为什么难**：
-- DOM 的 `<input>` 免费提供这一切
-- Canvas 需要从零实现，每个细节都要手写
-
-#### 挑战 2：布局引擎（⭐⭐⭐⭐）
-
-**问题**：DOM 的 Flexbox/Grid 自动布局，Canvas 必须手动计算坐标。
-
-**必须实现的功能**：
-1. **文本测量**：`measureText` 获取宽度，但高度需要自己算
-2. **换行算法**：文本超出宽度时，找到最佳断点
-3. **对齐计算**：左对齐、右对齐、居中，需要手动算偏移
-4. **响应式布局**：窗口大小变化时，重新计算所有坐标
-
-**代码量**：~4000 行
-
-**为什么难**：
-- 浏览器的布局引擎是数十万行 C++ 代码
-- 我们用 Rust 重新实现简化版，仍需数千行
-
-#### 挑战 3：事件系统（⭐⭐⭐⭐）
-
-**问题**：DOM 的事件冒泡、委托机制，Canvas 全部需要手写。
-
-**必须实现的功能**：
-1. **命中测试**：判断点击坐标属于哪个元素（O(n) → O(log n) 优化）
-2. **事件分发**：模拟 DOM 的事件冒泡
-3. **双击检测**：区分单击、双击、长按
-4. **右键菜单**：Canvas 本身没有上下文菜单
-5. **焦点管理**：哪个元素当前获得焦点
-
-**代码量**：~3000 行
-
-**为什么难**：
-- 需要自己实现空间索引（R-tree）优化命中测试
-- 需要处理边缘情况（重叠元素、嵌套元素）
-
-#### 挑战 4：无障碍支持（⭐⭐⭐⭐⭐）
-
-**问题**：Canvas 对屏幕阅读器完全不可见。
-
-**必须实现的功能**：
-1. **ARIA 属性**：需要额外的隐藏 DOM 层，与 Canvas 同步
-2. **键盘导航**：Tab 键在元素间切换，需要维护焦点树
-3. **语义化描述**：为每个 Canvas 元素提供文本描述
-
-**代码量**：~2000 行
-
-**为什么难**：
-- 需要维护两套系统：Canvas（视觉）+ DOM（无障碍）
-- 两者必须完全同步，否则屏幕阅读器读到的是错的
-
-#### 挑战 5：性能优化（⭐⭐⭐⭐）
-
-**问题**：10 万行数据，必须保持 60fps。
-
-**必须实现的功能**：
-1. **虚拟滚动**：只渲染可见区域
-2. **脏区域优化**：只重绘变化部分
-3. **分层 Canvas**：静态层 + 动态层 + 交互层
-4. **对象池**：避免频繁创建/销毁对象
-5. **Web Worker 并行**：数据处理放后台线程
-
-**代码量**：~3000 行
-
-**为什么难**：
-- 需要深入理解浏览器渲染机制
-- 需要手动管理内存，避免 GC 暂停
-
-### 10.3 总难度估算
-
-| 模块           | 难度 | 代码量 | 为什么难                           |
-| -------------- | ---- | ------ | ---------------------------------- |
-| 文本编辑       | ⭐⭐⭐⭐⭐ | 5000   | 重新发明 `<input>`                 |
-| 布局引擎       | ⭐⭐⭐⭐ | 4000   | 重新发明 Flexbox                   |
-| 事件系统       | ⭐⭐⭐⭐ | 3000   | 重新发明事件委托                   |
-| 无障碍支持     | ⭐⭐⭐⭐⭐ | 2000   | 维护双系统（Canvas + DOM）         |
-| 性能优化       | ⭐⭐⭐⭐ | 3000   | 接近浏览器原生性能                 |
-| 基础渲染       | ⭐⭐   | 8000   | 这部分确实简单（虚拟滚动、绘制）   |
-
-**总计**：~25,000 行 Rust 代码
-
-### 10.4 难度真相：不是 Rust 难，是任务本身难
-
-**关键洞察**：
-
-1. **Canvas API 本身很简单**：
-   ```rust
-   ctx.fill_rect(x, y, width, height); // 这一行不难
-   ```
-
-2. **难的是围绕 Canvas 构建完整 GUI 系统**：
-   - 文本编辑器（5000 行）
-   - 布局引擎（4000 行）
-   - 事件系统（3000 行）
-   - 无障碍层（2000 行）
-
-3. **类比**：
-   - 用 Rust 调用 `fillRect` = 1 星难度
-   - 用 Rust 重新发明浏览器 = 5 星难度
-
-**结论**：5 星难度不是因为 Rust 语言复杂，而是因为**我们在用 Rust 重新实现浏览器的 GUI 能力**。
-
-如果用 C++ 来做同样的事情（参考 Figma），难度同样是 5 星。
-
-### 10.5 为什么仍然值得做？
-
-**性能收益**：
-- DOM 渲染 10 万行表格：卡死
-- Canvas 渲染 10 万行表格：60fps
-
-**成功案例**：
-- **Figma**：用 C++ + WebAssembly + Canvas，支撑百万用户的设计工具
-- **Google Earth**：纯 Canvas 渲染，流畅展示全球地图
-- **AutoCAD Web**：CAD 软件的 Web 版本，依赖 Canvas 性能
-
-**投资回报**：
-- 开发成本：6-12 个月
-- 性能提升：10-100 倍
-- 用户体验：从"卡顿"到"丝滑"
-
-### 10.6 降低难度的策略
-
-**阶段 1：MVP（3 个月）**
-- ✅ 基础 Canvas 渲染
-- ✅ 虚拟滚动
-- ✅ 简单命中测试（仅支持点击）
-- ❌ 暂不支持文本编辑
-- ❌ 暂不支持无障碍
-
-**阶段 2：增强（3 个月）**
-- ✅ 添加文本编辑（仅单行）
-- ✅ 添加拖拽系统
-- ✅ 优化命中测试性能
-
-**阶段 3：完善（6 个月）**
-- ✅ 多行文本编辑 + IME
-- ✅ 完整无障碍支持
-- ✅ 键盘导航
-
-**渐进式开发**可将难度从"一次性 5 星"降至"分三期各 3 星"。
-
----
-
-## 结语：Canvas 渲染的哲学——性能与复杂度的权衡
-
-从 DOM 到 Canvas，我们经历了一次**性能与便利性的权衡**：
-
-**DOM 的便利**：
-- 免费的文本编辑
-- 免费的事件系统
-- 免费的无障碍支持
-- **代价**：10 万行数据时卡死
-
-**Canvas 的性能**：
-- 100 万行数据流畅
-- 完全控制渲染逻辑
-- 可做极致优化
-- **代价**：重新实现浏览器 GUI
+React 专注于：
+1. **状态管理**：Redux/Zustand 管理应用状态
+2. **用户交互**：onClick/onChange 等事件处理
+3. **业务逻辑**：过滤、排序、验证
 
 **哲学洞察**：
+> 复杂度不会消失，只会转移。混合架构不是"降低复杂度"，而是"将复杂度分配到最擅长的工具"。
 
-> **没有银弹**：性能和便利性是跷跷板的两端。选择 Canvas，就是选择牺牲便利换取性能。
+### 9.3 成功案例
 
-> **复杂度守恒**：浏览器帮我们承担的复杂度（文本编辑、事件系统），在 Canvas 中必须自己实现。复杂度不会消失，只会转移。
+**Figma**：
+- 技术栈：C++ + WebAssembly + React
+- C++ 负责：Canvas 渲染引擎
+- React 负责：UI 框架、状态管理
 
-> **Figma 的启示**：他们用 C++ + WebAssembly + Canvas 构建了百万用户的设计工具。这证明：**高开发成本换来的极致性能，在企业级场景下是值得的投资。**
+**Google Earth**：
+- 技术栈：C++ + WebAssembly + JavaScript
+- C++ 负责：3D 渲染、地形计算
+- JavaScript 负责：UI 交互、地图控制
 
-**最后的建议**：
+**AutoCAD Web**：
+- 技术栈：C++ + WebAssembly + Angular
+- C++ 负责：CAD 几何计算、渲染
+- Angular 负责：工具栏、属性面板
 
-如果你的应用符合以下条件，纯 Canvas 是正确选择：
-1. ✅ 数据量巨大（10 万+ 行）
-2. ✅ 性能是生死线（60fps 不可妥协）
-3. ✅ 团队有 Rust/C++ 经验
-4. ✅ 开发周期可接受（6-12 个月）
-5. ✅ 愿意投资换取长期竞争力
+**共同模式**：
+- ✅ 高性能语言（C++/Rust）负责计算 + 渲染
+- ✅ JavaScript 框架负责状态 + 交互
+- ✅ 混合而非替代
 
-如果不符合，混合方案（Rust 计算 + React/Vue 渲染）可能更务实。
+---
 
-**记住**：技术选型不是炫技，而是**在约束条件下寻找最优解**。Canvas 不是万能药，但在数据密集型场景下，它是目前最强的解。
+## 第十章：哲学反思——扬长避短的架构智慧
+
+### 10.1 没有银弹
+
+**DOM 的优势**：
+- 免费的事件系统
+- 免费的文本编辑
+- 免费的无障碍支持
+- **代价**：10万行数据时卡死
+
+**Canvas 的优势**：
+- 100万行数据流畅
+- 完全控制渲染逻辑
+- 可做极致优化
+- **代价**：需要手动实现 GUI 功能
+
+**混合架构的智慧**：
+- 用 React DOM 处理交互（免费的 GUI）
+- 用 Rust Canvas 处理渲染（极致的性能）
+- **结果**：两全其美
+
+### 10.2 复杂度守恒定律
+
+> 软件的复杂度是守恒的，不会凭空消失，只会在不同层次之间转移。
+
+**纯 DOM 方案**：
+- 简单：直接用 React 组件
+- **复杂度在运行时**：10万行数据 → 200万 DOM 节点 → 浏览器卡死
+
+**纯 Rust 方案**：
+- 简单：无需考虑 React 集成
+- **复杂度在开发时**：重建整个 GUI 系统 → 30,000 行代码
+
+**混合方案**：
+- 简单：各自做擅长的事
+- **复杂度在边界**：React-Rust 通信 → 需要精心设计接口
+
+**选择的标准**：
+- 如果数据量 < 1万行：DOM 方案（最简单）
+- 如果数据量 1-10万行：混合方案（平衡）
+- 如果数据量 > 10万行：必须 Canvas（性能刚需）
+
+### 10.3 抽象的层次
+
+**好的架构是分层的**：
+
+```
+┌─────────────────────────────────────┐
+│   业务逻辑层 (React Components)      │  ← 变化最快
+├─────────────────────────────────────┤
+│   抽象接口层 (Hooks / Context)       │  ← 稳定契约
+├─────────────────────────────────────┤
+│   计算渲染层 (Rust WebAssembly)      │  ← 性能核心
+├─────────────────────────────────────┤
+│   平台 API 层 (Canvas / WebGL)       │  ← 变化最慢
+└─────────────────────────────────────┘
+```
+
+**分层的价值**：
+1. **隔离变化**：业务逻辑变化不影响渲染引擎
+2. **可替换性**：可以用 JavaScript 实现替换 Rust 实现
+3. **可测试性**：每层可独立测试
+4. **可演进性**：可以逐步迁移到 Rust
+
+### 10.4 最后的建议
+
+**何时选择混合架构**？
+
+符合以下条件时，混合架构是最优解：
+1. ✅ 数据量巨大（10万+ 行）
+2. ✅ 性能是核心竞争力（60fps 不可妥协）
+3. ✅ 团队有 Rust 经验（至少 1 人）
+4. ✅ 开发周期可接受（5-6 个月）
+5. ✅ 愿意投资换取长期优势
+
+**何时不选择**？
+
+以下情况下，纯 React 方案更务实：
+1. ❌ 数据量 < 1万行（DOM 性能足够）
+2. ❌ 快速原型阶段（优先验证需求）
+3. ❌ 团队无 Rust 经验（学习成本高）
+4. ❌ 交付压力大（React 更快）
+
+---
+
+## 结语：架构即权衡
+
+从纯 DOM 到纯 Rust，再到 React + Rust 混合，我们经历了一次**权衡的艺术**：
+
+**DOM 的便利**：
+- 免费的 GUI 系统
+- 丰富的生态
+- **代价**：性能天花板
+
+**Rust 的性能**：
+- 极致的速度
+- 完全的控制
+- **代价**：高开发成本
+
+**混合的智慧**：
+- React 管状态，Rust 管计算
+- 扬长避短，两全其美
+- **代价**：需要精心设计边界
+
+**哲学启示**：
+
+> 没有完美的架构，只有合适的权衡。技术选型不是追求最新、最酷，而是在约束条件下寻找最优解。
+
+> 复杂度不会消失，只会转移。好的架构不是消除复杂度，而是将复杂度分配到最合适的地方。
+
+> Rust 不是万能药，React 也不是过时的工具。真正的智慧是知道何时用何种工具。
+
+**记住**：
+- 性能是企业级应用的生死线
+- 混合架构是务实的选择
+- 扬长避短胜过孤注一掷
+
+当你的应用需要处理 10万+ 行数据，当用户期望 60fps 的丝滑体验，当性能成为核心竞争力——React + Rust 混合架构就在那里，等你探索。
 
 ---
 
 ## 附录：参考资源
 
-**Canvas 渲染**：
-- [MDN Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
-- [Figma 的技术博客](https://www.figma.com/blog/)（他们如何用 C++ + Canvas 构建设计工具）
-- [Canvas Performance Best Practices](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas)
+**混合架构案例**：
+- [Figma 技术博客](https://www.figma.com/blog/) - C++ + WebAssembly + React
+- [Google Earth](https://earth.google.com/web/) - C++ + JavaScript
+- [AutoCAD Web](https://web.autocad.com/) - C++ + Angular
 
-**命中测试与空间索引**：
-- [R-tree Spatial Index](https://en.wikipedia.org/wiki/R-tree)
-- [Quadtree for 2D Hit Testing](https://en.wikipedia.org/wiki/Quadtree)
-
-**文本渲染**：
-- [Canvas Text Rendering Specification](https://html.spec.whatwg.org/multipage/canvas.html#text-styles)
-- [IME API](https://developer.mozilla.org/en-US/docs/Web/API/InputEvent/isComposing)
-
-**Rust + WebAssembly**：
-- [Rust and WebAssembly Book](https://rustwasm.github.io/docs/book/)
+**技术文档**：
 - [wasm-bindgen Guide](https://rustwasm.github.io/wasm-bindgen/)
+- [Canvas API Reference](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
+- [React Performance](https://react.dev/learn/render-and-commit)
+
+**性能优化**：
+- [Canvas Performance Best Practices](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas)
+- [WebAssembly Performance](https://v8.dev/blog/emscripten-llvm-wasm)
 
 ---
 
 > 写作日期：2024年2月
-> 字数统计：约15000字
-> 技术深度：极高（⭐⭐⭐⭐⭐）
+> 字数统计：约12000字
+> 技术深度：高（⭐⭐⭐⭐）
 > 适合读者：需要极致性能的企业级项目开发者
 
 ---
 
 **下一步探索**：
-- [ ] 实现完整的多行文本编辑器
-- [ ] 添加 IME 支持（中文输入法）
-- [ ] 实现无障碍 DOM 层
-- [ ] 集成 WebGPU（下一代 GPU 加速）
-- [ ] 构建组件库生态系统
+- [ ] 实现完整的混合架构 Demo
+- [ ] 性能对比测试（DOM vs Canvas vs 混合）
+- [ ] Web Worker 并行计算实践
+- [ ] SharedArrayBuffer 零拷贝优化
+- [ ] 与纯 React 方案的成本收益分析
+
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
