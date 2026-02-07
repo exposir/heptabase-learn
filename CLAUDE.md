@@ -5,35 +5,27 @@
 - [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
-# AI Talk - AI/LLM 学习笔记与 VitePress 知识库
+# Heptabase Learn - 前端与大模型知识库
 
-VitePress + Markdown + Node.js + Prettier
+Heptabase + Markdown + Git
 
 <directory>
-ai-agent-fullstack-course/ - 前端转 AI Agent 全栈通关秘籍 (1 子目录: [TODO] projects)
-docs/ - VitePress 站点与主题配置 (1 子目录: .vitepress)
-library/ - 外部资源库 (3 子目录: papers, references, tutorials)
-notes/ - 核心笔记内容 (22 子目录: vibe 最佳实践, long, AI 基础知识, claude-code, ...)
-prompts/ - 提示词与模板库 (3 子目录: library, system, user)
-sessions/ - 对话归档 (1 子目录: 2025)
-.github/ - CI 与协作规则 (1 子目录: workflows)
-.antigravity/ - Antigravity 规则配置 (0 子目录)
-.vscode/ - 编辑器本地配置 (0 子目录)
+前端开发的历史与哲学：从混沌到秩序的技术演进史/ - 前端技术演进的深度思考与历史脉络
 </directory>
 
 <config>
-AGENTS.md - AI 协作规则入口
+CLAUDE.md - Claude AI 协作规则与项目架构说明
+AGENTS.md - OpenAI 等通用 AI Agent 协作规则
 CODEX.md - Codex 指令扩展
-GEMINI.md - Gemini 代理规则
-package.json - 依赖与脚本
-package-lock.json - 依赖锁定
-.prettierrc - Markdown 格式化规则
-.env - 本地环境变量
-.env.example - 环境变量示例
+GEMINI.md - Google Gemini 代理规则
 .gitignore - Git 忽略规则
 </config>
 
-法则: 极简·稳定·导航·版本精确
+项目定位: 个人知识库，用于保存和学习前端开发、大模型（LLM）、AI 技术等领域的知识与思考
+知识管理工具: Heptabase（可视化知识图谱） + Markdown（文本记录）
+协作方式: 采用 GEB 分形文档系统，通过 L1/L2/L3 三层文档结构维护知识体系的一致性
+
+法则: 极简·深度·关联·持续演进
 
 <terminology>
 ## 术语说明：CLAUDE.md

@@ -5,6 +5,28 @@
 - [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
+# Heptabase Learn - 前端与大模型知识库
+
+Heptabase + Markdown + Git
+
+<directory>
+前端开发的历史与哲学：从混沌到秩序的技术演进史/ - 前端技术演进的深度思考与历史脉络
+</directory>
+
+<config>
+CLAUDE.md - Claude AI 协作规则与项目架构说明
+AGENTS.md - OpenAI 等通用 AI Agent 协作规则
+CODEX.md - Codex 指令扩展
+GEMINI.md - Google Gemini 代理规则
+.gitignore - Git 忽略规则
+</config>
+
+项目定位: 个人知识库，用于保存和学习前端开发、大模型（LLM）、AI 技术等领域的知识与思考
+知识管理工具: Heptabase（可视化知识图谱） + Markdown（文本记录）
+协作方式: 采用 GEB 分形文档系统，通过 L1/L2/L3 三层文档结构维护知识体系的一致性
+
+法则: 极简·深度·关联·持续演进
+
 <terminology>
 ## 术语说明：CLAUDE.md
 
