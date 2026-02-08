@@ -6,7 +6,7 @@ export default defineConfig({
   base: '/heptabase-learn/',
   
   themeConfig: {
-    logo: 'https://heptabase.com/favicon.ico',
+    logo: '/logo.svg',
     nav: [
       { text: '首页', link: '/' },
       { text: '前端哲学史', link: '/前端开发的历史与哲学/' },
