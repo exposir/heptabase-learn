@@ -1,0 +1,23 @@
+{
+  "name": "heptabase-learn",
+  "version": "1.2.0",
+  "description": "前端与大模型知识库 - 用 Heptabase + Markdown + Git 构建的思想实验室",
+  "main": "index.js",
+  "scripts": {
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
+  },
+  "keywords": [
+    "frontend",
+    "philosophy",
+    "rust",
+    "wasm",
+    "knowledge-base"
+  ],
+  "author": "exposir",
+  "license": "CC-BY-NC-SA-4.0",
+  "devDependencies": {
+    "vitepress": "^1.0.0-rc.44"
+  }
+}
