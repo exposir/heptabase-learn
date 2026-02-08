@@ -72,6 +72,23 @@
 - 核心原则：最小化跨语言边界的数据传输，数据所有权优先放Rust侧
 - 实际应用指导：判断任务应该放React还是Rust的决策表
 
+**快速滚动性能优化：requestAnimationFrame与限流策略.md**: 性能优化专题（约5000字）
+- 问题分析：快速滚动时每秒100+次事件触发导致渲染队列堆积
+- 解决方案对比：RAF（推荐）、Throttle（可用）、Debounce（不推荐）
+- RAF工作原理：同步浏览器刷新率（60fps），自动跳过无用中间帧
+- 性能提升：CPU占用从80%降至15%，帧率从35fps稳定到60fps
+- 最佳实践：RAF + 智能跳帧，适配高刷新率屏幕（120Hz/144Hz）
+- 核心洞察：React计算开销可忽略（~0.5ms），瓶颈在重复调用Rust render
+
+**React Scheduler与Canvas渲染的本质区别.md**: 架构对比专题（约8000字）
+- 核心问题：Canvas场景下是否使用React Scheduler？组件更新是否交给Rust？
+- 两种范式对比：React组件虚拟滚动（使用Scheduler）vs Canvas+Rust渲染（不使用）
+- Scheduler职责：优先级调度、时间切片、批处理——Canvas场景完全不需要
+- React的退化：从"重型框架"（占90%耗时）退化为"薄薄的一层"（占10%耗时）
+- 性能提升原理：省略Scheduler（1ms）、Reconciliation（3ms）、Fiber（1.5ms）、生命周期（1ms）、DOM操作（1ms）
+- 本质区别：React组件=乐高积木（可拆装），Canvas=油画布（只能擦除重画）
+- 数据流对比：组件渲染需8个步骤（8ms），Canvas渲染只需3个步骤（1.5ms），提升5倍
+
 ---
 
 ## 目录结构树
