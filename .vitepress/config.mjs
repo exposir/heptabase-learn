@@ -1,20 +1,20 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: "Heptabase Learn",
-  description: "前端与大模型知识库 - 用 Heptabase + Markdown + Git 构建的思想实验室",
+  title: "Heptabase Mirror",
+  description: "Heptabase 知识图谱的 Git 备份与归档",
   base: '/heptabase-learn/',
   
   head: [
-    ['link', { rel: 'icon', href: '/heptabase-learn/logo.svg' }]
+    ['link', { rel: 'icon', href: '/heptabase-learn/favicon.ico' }]
   ],
 
   themeConfig: {
     logo: '/logo.svg',
     nav: [
-      { text: '首页', link: '/' },
-      { text: '前端哲学史', link: '/前端开发的历史与哲学/' },
-      { text: '关于', link: 'https://github.com/exposir' }
+      { text: '🗂️ 归档浏览', link: '/前端开发的历史与哲学/' },
+      { text: '🧠 Heptabase', link: 'https://heptabase.com' },
+      { text: 'GitHub', link: 'https://github.com/exposir/heptabase-learn' }
     ],
 
     sidebar: {

@@ -2,52 +2,53 @@
 layout: home
 
 hero:
-  name: "Heptabase Learn"
-  text: "前端与大模型知识库"
-  tagline: "深度学习前端开发、大模型（LLM）、AI 技术的思想沉淀之地"
+  name: "Heptabase Mirror"
+  text: "知识库 · Git 归档"
+  tagline: "Heptabase 知识图谱的文本化镜像与版本备份"
   image:
     src: /heptabase-learn/logo.svg
-    alt: Heptabase Learn
+    alt: Heptabase Mirror
   actions:
     - theme: brand
-      text: 开启认知奥德赛
+      text: 🗂️ 浏览文件归档
       link: /前端开发的历史与哲学/
     - theme: alt
-      text: 在 GitHub 上查看
-      link: https://github.com/exposir/heptabase-learn
+      text: 🔗 前往 Heptabase
+      link: https://heptabase.com/
 
 features:
-  - title: 📚 深度优于广度
-    details: 宁可深挖一口井，不愿浅尝百家泉。专注于前端底层架构与哲学思辨。
-  - title: 🧩 GEB 分形一致性
-    details: 代码是机器相，文档是语义相。通过 L1/L2/L3 三层结构实现两相高度同构。
-  - title: 🧠 哲学驱动技术
-    details: 理解"为什么"比记住"怎么做"更重要。每一行代码都是对本质的一次逼近。
+  - title: 🧠 Heptabase First
+    details: Heptabase 是思维的发生地与主战场。这里是思维沉淀后的文本快照。
+  - title: 💾 Git Archive
+    details: 利用 Git 的版本控制能力，为流动的思维提供永久的历史回溯锚点。
+  - title: 📄 Markdown Mirror
+    details: 将可视化的白板逻辑降维映射为线性的 Markdown 文档，便于通用检索与阅读。
 ---
 
-## 🎯 项目定位
+## ℹ️ 关于本档案
 
-这不是一个普通的技术笔记仓库，而是一个**知识的沉淀场域**，一个**思想的实验室**。
+这是一个 **[Heptabase](https://heptabase.com)** 个人知识库的 **Git 备份仓库**。
 
----
+本项目的主要目的是：
+1.  **数据主权**：将核心知识以纯文本（Markdown）形式本地化保存。
+2.  **版本回溯**：记录思想演进的历史轨迹。
+3.  **结构映射**：通过 **GEB 分形协议**，尝试在文件系统中重建图谱的逻辑结构。
 
-## 🌟 核心内容
-
-### 📖 前端开发的历史与哲学
-
-本项目通过 12 篇深度专题，系统性梳理了从 1979 年 Smalltalk 诞生到 2024 年 Rust+Wasm 混合架构的技术演进脉络。
-
-- **哲学溯源**：Smalltalk 简史、MVC 模式的深度解构。
-- **架构演进**：三大框架的继承与超越、React Scheduler 的决策逻辑。
-- **工业实战**：Rust 企业级渲染器设计、React+Rust 混合架构深度剖析。
+> **注意**：
+> 这里的文档可能滞后于 Heptabase 中的实时思考。阅读最新、最完整的知识网络，建议回到 Heptabase 查看原始白板。
 
 ---
 
-## 📊 项目统计
+## 📂 归档目录索引
 
-- **总字数**：约 135,000 字
-- **专题文章**：12 篇
-- **维护状态**：✅ 活跃维护中
+### [前端开发的历史与哲学](./前端开发的历史与哲学/index.md)
+> 核心专题归档：技术演进、架构哲学与 Rust/Wasm 实战。
+
+- **哲学与范式**：MVC、Smalltalk、三大框架
+- **工业实战**：Rust 渲染器、混合架构、性能优化
+- **架构反思**：命令式 vs 声明式、重新发明轮子
+
+---
 
 <!--
 - [INPUT]: 无外部依赖，作为项目门户的自包含文档
