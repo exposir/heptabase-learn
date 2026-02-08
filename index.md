@@ -3,14 +3,14 @@ layout: home
 
 hero:
   name: "Heptabase Mirror"
-  text: "知识库 · Git 归档"
-  tagline: "Heptabase 知识图谱的文本化镜像与版本备份"
+  text: "知识库 · 全量归档"
+  tagline: "Heptabase 知识图谱的 Git 镜像与物理文件清单"
   image:
     src: /heptabase-learn/logo.svg
     alt: Heptabase Mirror
   actions:
     - theme: brand
-      text: 🗂️ 浏览文件归档
+      text: 🗂️ 立即浏览归档
       link: /前端开发的历史与哲学/
     - theme: alt
       text: 🔗 前往 Heptabase
@@ -18,59 +18,64 @@ hero:
 
 features:
   - title: 🧠 Heptabase First
-    details: Heptabase 是思维的发生地与主战场。这里是思维沉淀后的文本快照。
+    details: 这里是思维沉淀后的文本快照。
   - title: 💾 Git Archive
-    details: 利用 Git 的版本控制能力，为流动的思维提供永久的历史回溯锚点。
+    details: 永久的思想演进锚点。
   - title: 📄 Markdown Mirror
-    details: 将可视化的白板逻辑降维映射为线性的 Markdown 文档，便于通用检索与阅读。
+    details: 100% 物理文件显现。
 ---
 
 ## ℹ️ 关于本档案
 
-这是一个 **[Heptabase](https://heptabase.com)** 个人知识库的 **Git 备份仓库**。
-
-本项目的主要目的是：
-1.  **数据主权**：将核心知识以纯文本（Markdown）形式本地化保存。
-2.  **版本回溯**：记录思想演进的历史轨迹。
-3.  **结构映射**：通过 **GEB 分形协议**，尝试在文件系统中重建图谱的逻辑结构。
-
-> **注意**：
-> 这里的文档可能滞后于 Heptabase 中的实时思考。阅读最新、最完整的知识网络，建议回到 Heptabase 查看原始白板。
+这是一个 **[Heptabase](https://heptabase.com)** 个人知识库的 **Git 备份仓库**。这里不仅是备份，更是思想在文件系统中的真实投影。
 
 ---
 
-## 📂 归档目录索引
+## 📂 全量归档注册表 (Full Archive Registry)
 
-### [前端开发的历史与哲学](./前端开发的历史与哲学/index.md)
-> 核心专题归档：技术演进、架构哲学与 Rust/Wasm 实战。
+### 🏛️ 前端开发的历史与哲学 (`/前端开发的历史与哲学/`)
+> 核心专题归档：三十年技术演进与架构哲学深度剖析。
 
-### [Prompt 实验室](./prompt/CLAUDE.md)
-> 高质量 AI 协作指令归档：涵盖产品构建框架、合伙人角色定义等执行指令。
+- [📖 模块总目录 (index.md)](./前端开发的历史与哲学/index.md)
+- [🗺️ 模块地图 (CLAUDE.md)](./前端开发的历史与哲学/CLAUDE.md)
+- **哲学与范式**
+  - [Smalltalk 简史：面向对象实验室](./前端开发的历史与哲学/Smalltalk简史：面向对象编程的理念实验室.md)
+  - [MVC 模式的哲学解构](./前端开发的历史与哲学/MVC模式的哲学解构：架构思想的深度剖析.md)
+  - [三大框架与 MVC：继承、重构与超越](./前端开发的历史与哲学/三大框架与MVC：继承、重构与超越.md)
+- **Rust + Wasm 实战**
+  - [Rust+WebAssembly 渲染器基础实战](./前端开发的历史与哲学/Rust+WebAssembly前端渲染器实战：从理论到实践.md)
+  - [企业级前端渲染器架构设计 (Rust)](./前端开发的历史与哲学/Rust企业级前端渲染器架构设计：从表格到甘特图的工程实践.md)
+  - [project_manager_fe 混合架构深度剖析](./前端开发的历史与哲学/React+Rust混合架构深度剖析：project_manager_fe表格渲染的性能优化实践.md)
+- **技术澄清与决策**
+  - [职责边界澄清：谁决定渲染什么？](./前端开发的历史与哲学/React与Rust的职责边界澄清：谁决定渲染什么.md)
+  - [职责边界澄清：Canvas API 调用位置](./前端开发的历史与哲学/React与Rust职责边界的澄清：为什么Canvas API调用在Rust侧.md)
+  - [React Scheduler 的存在必然性：架构抉择](./前端开发的历史与哲学/React Scheduler的存在必然性：声明式vs命令式的架构抉择.md)
+- **性能优化反思**
+  - [核心问答总结：命令式渲染优化的本质](./前端开发的历史与哲学/命令式渲染优化的本质与适用边界：核心问答总结.md)
+  - [命令式渲染的多种实现路径](./前端开发的历史与哲学/命令式渲染的多种实现路径：不一定要重新发明轮子.md)
+  - [你在重新发明轮子：自建状态管理的代价](./前端开发的历史与哲学/命令式+基础组件改造vs Preact：你在重新发明轮子.md)
+  - [Preact 替换的现实困境：局部隔离的权衡](./前端开发的历史与哲学/Preact替换的现实困境：全局替换vs局部隔离的工程权衡.md)
 
----
+### 🤖 Prompt 实验室 (`/prompt/`)
+> 高质量 AI 协作指令与产品构建框架。
 
-## 🌟 核心内容
+- [🗺️ 模块地图 (CLAUDE.md)](./prompt/CLAUDE.md)
+- [Technical Co-Founder: 产品构建框架](./prompt/1.md)
 
-### 📖 前端开发的历史与哲学
+### ⚖️ 核心规则与规范 (Root)
+> 定义了本知识库的协作灵魂与分形协议。
 
-本项目通过 12 篇深度专题，系统性梳理了从 1979 年 Smalltalk 诞生到 2024 年 Rust+Wasm 混合架构的技术演进脉络。
-
-- **哲学溯源**：Smalltalk 简史、MVC 模式的深度解构。
-- **架构演进**：三大框架的继承与超越、React Scheduler 的决策逻辑。
-- **工业实战**：Rust 企业级渲染器设计、React+Rust 混合架构深度剖析。
-
-### 🤖 Prompt 实验室
-
-归档了一系列经过实战验证的高效 Prompt 框架：
-
-- **[Technical Co-Founder](./prompt/1.md)**：将 AI 转化为你的技术合伙人，涵盖从发现到交付的全流程协作框架。
+- [📘 项目宪法 (CLAUDE.md)](./CLAUDE.md)
+- [🤖 OpenAI 协作规则 (AGENTS.md)](./AGENTS.md)
+- [💎 Google Gemini 代理规则 (GEMINI.md)](./GEMINI.md)
+- [💻 Codex 代码生成规范 (CODEX.md)](./CODEX.md)
 
 ---
 
 ## 📊 项目统计
 
-- **总字数**：约 136,000 字
-- **专题文章**：12 篇 + 核心 Prompt
+- **知识厚度**：约 136,000 字
+- **物理文件**：22 个 Markdown 归档
 - **维护状态**：✅ 活跃维护中
 
 <!--
