@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "Heptabase Learn",
   description: "前端与大模型知识库 - 用 Heptabase + Markdown + Git 构建的思想实验室",
+  base: '/heptabase-learn/',
   
   themeConfig: {
     logo: 'https://heptabase.com/favicon.ico',
