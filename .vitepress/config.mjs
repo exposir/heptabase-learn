@@ -8,7 +8,7 @@ export default defineConfig({
     logo: 'https://heptabase.com/favicon.ico',
     nav: [
       { text: '首页', link: '/' },
-      { text: '前端哲学史', link: '/前端开发的历史与哲学：从混沌到秩序的技术演进史/' },
+      { text: '前端哲学史', link: '/前端开发的历史与哲学：从混沌到秩序的技术演进史/README' },
       { text: '关于', link: 'https://github.com/exposir' }
     ],
 
