@@ -75,21 +75,21 @@ heptabase-learn/
 **专题深化系列**：
 
 #### 🏛️ 哲学与范式
-1. **[MVC模式的哲学解构](./前端开发的历史与哲学：从混沌到秩序的技术演进史/MVC模式的哲学解构：架构思想的深度剖析.md)**（12000字）
+1. **[MVC模式的哲学解构](./%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91%E7%9A%84%E5%8E%86%E5%8F%B2%E4%B8%8E%E5%93%B2%E5%AD%A6%EF%BC%9A%E4%BB%8E%E6%B7%B7%E6%B2%86%E5%88%B0%E7%A7%A9%E5%BA%8F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B%E5%8F%B2/MVC%E6%A8%A1%E5%BC%8F%E7%9A%84%E5%93%B2%E5%AD%A6%E8%A7%A3%E6%9E%84%EF%BC%9A%E6%9E%B6%E6%9E%84%E6%80%9D%E6%83%B3%E7%9A%84%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90.md)**（12000字）
    - 从1979年Smalltalk到现代微前端，康德三大批判的代码映射。
-2. **[三大框架与MVC：继承、重构与超越](./前端开发的历史与哲学：从混沌到秩序的技术演进史/三大框架与MVC：继承、重构与超越.md)**（5500字）
+2. **[三大框架与MVC：继承、重构与超越](./%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91%E7%9A%84%E5%8E%86%E5%8F%B2%E4%B8%8E%E5%93%B2%E5%AD%A6%EF%BC%9A%E4%BB%8E%E6%B7%B7%E6%B2%86%E5%88%B0%E7%A7%A9%E5%BA%8F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B%E5%8F%B2/%E4%B8%89%E5%A4%A7%E6%A1%86%E6%9E%B6%E4%B8%8EMVC%EF%BC%9A%E7%BB%A7%E6%89%BF%E3%80%81%E9%87%8D%E6%9E%84%E4%B8%8E%E8%B6%85%E8%B6%8A.md)**（5500字）
    - React、Vue、Angular 的哲学分野：自由主义 vs 中庸主义 vs 制度主义。
-3. **[Smalltalk简史：理念实验室](./前端开发的历史与哲学：从混沌到秩序的技术演进史/Smalltalk简史：面向对象编程的理念实验室.md)**（6000字）
+3. **[Smalltalk简史：理念实验室](./%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91%E7%9A%84%E5%8E%86%E5%8F%B2%E4%B8%8E%E5%93%B2%E5%AD%A6%EF%BC%9A%E4%BB%8E%E6%B7%B7%E6%B2%86%E5%88%B0%E7%A7%A9%E5%BA%8F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B%E5%8F%B2/Smalltalk%E7%AE%80%E5%8F%B2%EF%BC%9A%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B%E7%9A%84%E7%90%86%E5%BF%B5%E5%AE%9E%E9%AA%8C%E5%AE%A4.md)**（6000字）
    - 溯源 1979 年 Xerox PARC 的“创世纪”时刻。
 
 #### 🦀 Rust + Wasm 工业实践
-4. **[Rust+WebAssembly渲染器实战](./前端开发的历史与哲学：从混沌到秩序的技术演进史/Rust+WebAssembly前端渲染器实战：从理论到实践.md)**（10000字）
+4. **[Rust+WebAssembly渲染器实战](./%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91%E7%9A%84%E5%8E%86%E5%8F%B2%E4%B8%8E%E5%93%B2%E5%AD%A6%EF%BC%9A%E4%BB%8E%E6%B7%B7%E6%B2%86%E5%88%B0%E7%A7%A9%E5%BA%8F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B%E5%8F%B2/Rust+WebAssembly%E5%89%8D%E7%AB%AF%E6%B8%B2%E6%97%AB%E5%99%A8%E5%AE%9E%E6%88%98%EF%BC%9A%E4%BB%8E%E7%90%86%E8%AE%BA%E5%88%B0%E5%AE%9E%E8%B7%B5.md)**（10000字）
    - 纯 Rust 实现虚拟 DOM 的底层原理与 Diff 算法。
-5. **[React+Rust混合架构深度剖析](./前端开发的历史与哲学：从混沌到秩序的技术演进史/React+Rust混合架构深度剖析：project_manager_fe表格渲染的性能优化实践.md)**（15000字）⭐
+5. **[React+Rust混合架构深度剖析](./%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91%E7%9A%84%E5%8E%86%E5%8F%B2%E4%B8%8E%E5%93%B2%E5%AD%A6%EF%BC%9A%E4%BB%8E%E6%B7%B7%E6%B2%86%E5%88%B0%E7%A7%A9%E5%BA%8F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B%E5%8F%B2/React+Rust%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%EF%BC%9Aproject_manager_fe%E8%A1%A8%E6%A0%BC%E6%B8%B2%E6%97%AB%E7%9A%84%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5.md)**（15000字）⭐
    - 真实企业级案例：30 倍性能提升的实现路径，缓存比语言选择更重要。
-6. **[企业级前端渲染器架构设计](./前端开发的历史与哲学：从混沌到秩序的技术演进史/Rust企业级前端渲染器架构设计：从表格到甘特图的工程实践.md)**（12000字）
+6. **[企业级前端渲染器架构设计](./%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91%E7%9A%84%E5%8E%86%E5%8F%B2%E4%B8%8E%E5%93%B2%E5%AD%A6%EF%BC%9A%E4%BB%8E%E6%B7%B7%E6%B2%86%E5%88%B0%E7%A7%A9%E5%BA%8F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B%E5%8F%B2/Rust%E4%BC%81%E4%B8%9A%E7%BA%A7%E5%89%8D%E7%AB%AF%E6%B8%B2%E6%97%AB%E5%99%A8%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%EF%BC%9A%E4%BB%8E%E8%A1%A8%E6%A0%BC%E5%88%B0%E7%94%98%E7%89%B9%E5%9B%BE%E7%9A%84%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5.md)**（12000字）
    - 扬长避短的哲学：React 管状态，Rust 管计算。
-7. **[职责边界澄清：Canvas API 调用位置](./前端开发的历史与哲学：从混沌到秩序的技术演进史/React与Rust职责边界的澄清：为什么Canvas API调用在Rust侧.md)**（6000字）
+7. **[职责边界澄清：Canvas API 调用位置](./%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91%E7%9A%84%E5%8E%86%E5%8F%B2%E4%B8%8E%E5%93%B2%E5%AD%A6%EF%BC%9A%E4%BB%8E%E6%B7%B7%E6%B2%86%E5%88%B0%E7%A7%A9%E5%BA%8F%E7%9A%84%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B%E5%8F%B2/React%E4%B8%8ERust%E8%81%8C%E8%60%A3%E8%BE%B9%E7%95%8C%E7%9A%84%E6%BE%84%E6%B8%85%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88Canvas%20API%E8%B0%83%E7%94%A8%E5%9C%A8Rust%E4%BE%A7.md)**（6000字）
    - 揭秘 3500 倍数据传输优势的架构数学证明。
 
 ---
