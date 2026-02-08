@@ -15,7 +15,8 @@
 Heptabase + Markdown + Git
 
 <directory>
-前端开发的历史与哲学：从混沌到秩序的技术演进史/ - 前端技术演进的深度思考与历史脉络
+前端开发的历史与哲学/ - 前端技术演进的深度思考与历史脉络
+prompt/ - 高质量 AI 协作指令与产品构建框架库
 </directory>
 
 <config>
