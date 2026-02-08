@@ -34,6 +34,7 @@ export default defineConfig({
             { text: 'Wasm 渲染器基础实战', link: '/前端开发的历史与哲学：从混沌到秩序的技术演进史/Rust+WebAssembly前端渲染器实战：从理论到实践' },
             { text: '企业级渲染器架构设计', link: '/前端开发的历史与哲学：从混沌到秩序的技术演进史/Rust企业级前端渲染器架构设计：从表格到甘特图的工程实践' },
             { text: 'React 与 Rust 职责边界澄清', link: '/前端开发的历史与哲学：从混沌到秩序的技术演进史/React与Rust职责边界的澄清：为什么Canvas API调用在Rust侧' },
+            { text: '架构权力划分：谁决定渲染什么', link: '/前端开发的历史与哲学：从混沌到秩序的技术演进史/React与Rust的职责边界澄清：谁决定渲染什么' },
           ]
         },
         {
