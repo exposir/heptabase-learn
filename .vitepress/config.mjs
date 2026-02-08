@@ -5,6 +5,10 @@ export default defineConfig({
   description: "前端与大模型知识库 - 用 Heptabase + Markdown + Git 构建的思想实验室",
   base: '/heptabase-learn/',
   
+  head: [
+    ['link', { rel: 'icon', href: '/heptabase-learn/logo.svg' }]
+  ],
+
   themeConfig: {
     logo: '/logo.svg',
     nav: [

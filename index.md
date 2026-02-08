@@ -6,7 +6,7 @@ hero:
   text: "前端与大模型知识库"
   tagline: "深度学习前端开发、大模型（LLM）、AI 技术的思想沉淀之地"
   image:
-    src: /logo.svg
+    src: /heptabase-learn/logo.svg
     alt: Heptabase Learn
   actions:
     - theme: brand
