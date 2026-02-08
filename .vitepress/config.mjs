@@ -9,7 +9,7 @@ export default defineConfig({
     logo: 'https://heptabase.com/favicon.ico',
     nav: [
       { text: '首页', link: '/' },
-      { text: '前端哲学史', link: '/前端开发的历史与哲学：从混沌到秩序的技术演进史/README' },
+      { text: '前端哲学史', link: '/前端开发的历史与哲学：从混沌到秩序的技术演进史/' },
       { text: '关于', link: 'https://github.com/exposir' }
     ],
 
@@ -18,7 +18,7 @@ export default defineConfig({
         {
           text: '📖 前端哲学全景',
           items: [
-            { text: '引言：代码背后的形而上学', link: '/前端开发的历史与哲学：从混沌到秩序的技术演进史/README' },
+            { text: '引言：代码背后的形而上学', link: '/前端开发的历史与哲学：从混沌到秩序的技术演进史/' },
           ]
         },
         {
