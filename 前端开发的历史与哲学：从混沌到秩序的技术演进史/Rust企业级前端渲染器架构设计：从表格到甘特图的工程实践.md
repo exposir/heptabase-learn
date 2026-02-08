@@ -87,7 +87,7 @@
 ┌─────────────────────────────────────────┐
 │         应用层 (React Components)         │  ← 业务逻辑
 ├─────────────────────────────────────────┤
-│        接口层 (Hooks / API)              │  ← 抽象边界
+│        接口层 (Hooks / API)              │  ← 稳定契约
 ├─────────────────────────────────────────┤
 │     计算层 (Rust WebAssembly)            │  ← 性能热点
 ├─────────────────────────────────────────┤
@@ -166,7 +166,7 @@ Canvas 绘制调用：10万行 × 20列 × 2次(背景+文本) = 400万次
 ```
 可见区域：20 行（1080p 屏幕）
 绘制调用：20 × 20 × 2 = 800 次
-首次渲染时间：< 16ms（60fps）
+首次渲染时间：&lt; 16ms（60fps）
 内存占用：恒定 4KB（只存可见行）
 ```
 
@@ -452,7 +452,7 @@ const updateCell = (rowIdx, colIdx, newValue) => {
 |------------|------|------|----------|
 | Number | f64/i32 | ⭐⭐⭐⭐⭐ | 标量参数（滚动位置、索引） |
 | String | String | ⭐⭐⭐ | 短字符串（ID、标题） |
-| Array | Vec<T> | ⭐⭐ | 小数组（可见范围 [start, end]） |
+| Array | `Vec<T>` | ⭐⭐ | 小数组（可见范围 [start, end]） |
 | Object | 自定义 Struct | ⭐⭐ | 配置对象 |
 | 大数组 | TypedArray | ⭐⭐⭐⭐ | 大规模数据（共享内存） |
 
@@ -562,7 +562,7 @@ self.onmessage = async (e) => {
 ```rust
 #[wasm_bindgen]
 pub struct Kanban {
-    cards: Vec<Card>,
+    cards: `Vec<Card>`,
 }
 
 #[derive(Clone)]
@@ -610,7 +610,7 @@ const handleMouseDown = (e) => {
 ```rust
 // 将 O(n) 优化为 O(log n)
 pub struct SpatialIndex {
-    rtree: RTree<Card>,
+    rtree: `RTree<Card>`,
 }
 
 impl SpatialIndex {
@@ -707,21 +707,21 @@ date = start_date + (pixel_x / canvas_width) * (end_date - start_date)
 use chrono::{DateTime, Utc, Duration};
 
 pub struct TimeAxis {
-    start_date: DateTime<Utc>,
-    end_date: DateTime<Utc>,
+    start_date: `DateTime<Utc>`,
+    end_date: `DateTime<Utc>`,
     canvas_width: f64,
 }
 
 impl TimeAxis {
     /// 时间 → 像素
-    pub fn date_to_pixel(&self, date: DateTime<Utc>) -> f64 {
+    pub fn date_to_pixel(&self, date: `DateTime<Utc>`) -> f64 {
         let total_seconds = (self.end_date - self.start_date).num_seconds() as f64;
         let offset_seconds = (date - self.start_date).num_seconds() as f64;
         (offset_seconds / total_seconds) * self.canvas_width
     }
 
     /// 像素 → 时间
-    pub fn pixel_to_date(&self, pixel_x: f64) -> DateTime<Utc> {
+    pub fn pixel_to_date(&self, pixel_x: f64) -> `DateTime<Utc>` {
         let total_seconds = (self.end_date - self.start_date).num_seconds() as f64;
         let ratio = pixel_x / self.canvas_width;
         let offset_seconds = (total_seconds * ratio) as i64;
@@ -752,7 +752,7 @@ const handleWheel = (e) => {
 **Rust 更新时间轴**：
 
 ```rust
-pub fn zoom(&mut self, factor: f64, anchor_date: DateTime<Utc>) {
+pub fn zoom(&mut self, factor: f64, anchor_date: `DateTime<Utc>`) {
     let old_duration = self.end_date - self.start_date;
     let new_duration = old_duration / factor as i32;
 
@@ -781,7 +781,7 @@ gantt.render_dependencies(dependencies);
 **Rust 绘制箭头**：
 
 ```rust
-pub fn render_dependencies(&self, ctx: &CanvasRenderingContext2d, deps: Vec<Dependency>) {
+pub fn render_dependencies(&self, ctx: &CanvasRenderingContext2d, deps: `Vec<Dependency>`) {
     for dep in deps {
         let from_task = self.find_task(&dep.from);
         let to_task = self.find_task(&dep.to);
@@ -823,7 +823,10 @@ function TableComponent() {
   return (
     <div>
       <div>FPS: {fps} | Render: {renderTime}ms</div>
-      <Canvas />
+      {/* 演示用的 React 容器 */}
+      <div className="canvas-container">
+        <canvas id="main-canvas" />
+      </div>
     </div>
   );
 }
@@ -1081,7 +1084,7 @@ React 专注于：
 - **复杂度在边界**：React-Rust 通信 → 需要精心设计接口
 
 **选择的标准**：
-- 如果数据量 < 1万行：DOM 方案（最简单）
+- 如果数据量 &lt; 1万行：DOM 方案（最简单）
 - 如果数据量 1-10万行：混合方案（平衡）
 - 如果数据量 > 10万行：必须 Canvas（性能刚需）
 
@@ -1121,7 +1124,7 @@ React 专注于：
 **何时不选择**？
 
 以下情况下，纯 React 方案更务实：
-1. ❌ 数据量 < 1万行（DOM 性能足够）
+1. ❌ 数据量 &lt; 1万行（DOM 性能足够）
 2. ❌ 快速原型阶段（优先验证需求）
 3. ❌ 团队无 Rust 经验（学习成本高）
 4. ❌ 交付压力大（React 更快）

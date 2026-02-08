@@ -5,6 +5,11 @@
 - [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
+# Heptabase Learn - AI 协作规则 (Gemini)
+
+> 本文件定义了 Google Gemini 在本项中的协作规则与认知架构。
+
+```xml
 # Heptabase Learn - 前端与大模型知识库
 
 Heptabase + Markdown + Git
@@ -219,3 +224,4 @@ Phase
 维护三层完整，执行回环约束，拒绝孤立变更。
 Keep the map aligned with the terrain, or the terrain will be lost.
 </INVOCATION>
+```
