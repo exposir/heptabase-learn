@@ -68,8 +68,8 @@ export default defineConfig({
           text: '📈 资产本质与实战',
           items: [
             { text: '⭐ 核心认知地图', link: '/股票/核心认知地图' },
+            { text: '🔥 A股散户生存指南', link: '/股票/A股散户生存指南：从认知到实操的完整框架' },
             { text: '🗺️ 模块地图', link: '/股票/CLAUDE' },
-            { text: '核心：股票的本质', link: '/股票/股票的本质' },
             { text: 'A 股优质资产', link: '/股票/A股优质资产' },
             { text: 'A 股只有大宗商品', link: '/股票/A股只有大宗商品' },
             { text: 'A 股特种作战报告', link: '/股票/A股特种作战报告' },
