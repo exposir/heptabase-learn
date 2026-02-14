@@ -1,8 +1,8 @@
 <!--
 - [INPUT]: 依赖字节跳动内部 Layout-Box 代码库分析
 - [OUTPUT]: 提供企业级 Canvas+Rust 渲染引擎的深度架构剖析
-- [POS]: 位于 前端开发的历史与哲学/rdk 目录下的核心研报
-- [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+- [POS]: RDK 目录下的核心研报
+- [PROTOCOL]: 变更时更新此头部，然后检查 /RDK/CLAUDE.md
 -->
 
 # Layout-Box 项目分析报告

@@ -16,7 +16,8 @@ Heptabase + Markdown + Git
 
 <directory>
 前端开发的历史与哲学/ - 前端技术演进的深度思考与历史脉络
-prompt/ - 高质量 AI 协作指令与产品构建框架库
+RDK/ - 企业级渲染引擎深度剖析专题 (Layout-Box)
+提示词/ - 高质量 AI 协作指令与产品构建框架库
 股票/ - 资产本质、散户心理与 A 股特种作战报告
 </directory>
 

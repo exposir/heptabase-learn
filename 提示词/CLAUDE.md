@@ -1,11 +1,11 @@
 <!--
 - [INPUT]: 依赖 /CLAUDE.md 的全局架构规范
 - [OUTPUT]: 本目录的模块地图与成员清单
-- [POS]: L2 层级文档，描述 "prompt" 专题模块
+- [POS]: L2 层级文档，描述 "提示词" 专题模块
 - [PROTOCOL]: 变更时更新此头部，然后检查 /CLAUDE.md
 -->
 
-# prompt/
+# 提示词/
 
 > L2 | 父级: /CLAUDE.md
 
@@ -15,7 +15,7 @@
 
 ## 成员清单
 
-- **1.md**: Build Any App: The Technical Co-Founder。技术合伙人角色定义，提供从发现到交付的全流程产品构建框架。
+- **技术合伙人协作框架.md**: Build Any App: The Technical Co-Founder。技术合伙人角色定义，提供从发现到交付的全流程产品构建框架。
 
 ## 法则
 
