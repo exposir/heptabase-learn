@@ -1,7 +1,7 @@
 <!--
 - [INPUT]: CTO 视角下的 Claude Code 深度使用指南
 - [OUTPUT]: 格式化后的企业级 Agent 开发手册与最佳实践
-- [POS]: 提示词/ 模块，作为 AI 协作的高级方法论支撑
+- [POS]: AI编程技巧/ 模块，作为 AI 协作的高级方法论支撑
 - [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 

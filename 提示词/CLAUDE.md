@@ -15,8 +15,7 @@
 
 ## 成员清单
 
-- **技术合伙人协作框架.md**: Build Any App: The Technical Co-Founder。技术合伙人角色定义，提供从发现到交付的全流程产品构建框架。
-- **Claude-Code-CTO-Playbook.md**: 企业级 Claude Code 使用手册，涵盖 Plan Mode、CLAUDE.md 优化、上下文管理与系统化构建。
+- **技术合伙人协作框架.md**: Build Any App: The Technical Co-Founder。技术合伙人角色定义，提供从发现到交付的全流程产品构建框架.
 
 ## 法则
 
