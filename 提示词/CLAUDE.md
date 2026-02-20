@@ -15,6 +15,7 @@
 
 ## 成员清单
 
+- **系统/**: 系统级提示词（System Prompts）与代理工具机制深度剖析存档目录。
 - **技术合伙人协作框架.md**: Build Any App: The Technical Co-Founder。技术合伙人角色定义，提供从发现到交付的全流程产品构建框架.
 
 ## 法则
