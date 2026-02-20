@@ -1,9 +1,28 @@
 <!--
-- [INPUT]: 依赖 https://raw.githubusercontent.com/facebook/react/main/CHANGELOG.md 的原始内容
+- [INPUT]: 依赖 https://raw.githubusercontent.com/facebook/react/main/CHANGELOG.md 的原始内容加上最新的 Releases 版本说明
 - [OUTPUT]: 本文档提供 React 官方版本的更新日志（全量）
 - [POS]: 更新日志 模块的历史档案之一
 - [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
+
+## 19.2.4 (January 26, 2026)
+
+### React Server Components
+
+- Add more DoS mitigations to Server Actions, and harden Server Components. ([#35632](https://github.com/facebook/react/pull/35632))
+
+## 19.2.3 (December 18, 2025)
+
+### React Server Components
+
+- Add extra loop protection to React Server Functions (@sebmarkbage in [#35351](https://github.com/facebook/react/pull/35351))
+
+## 19.2.2 (December 11, 2025)
+
+### React Server Components
+
+- Move `react-server-dom-webpack/*.unbundled` to private `react-server-dom-unbundled` (@eps1lon in [#35290](https://github.com/facebook/react/pull/35290))
+- Patch Promise cycles and `toString` on Server Functions (@sebmarkbage and @unstubbable in [#35289](https://github.com/facebook/react/pull/35289) and [#35345](https://github.com/facebook/react/pull/35345))
 
 ## 19.2.1 (Dec 3, 2025)
 
