@@ -1,201 +1,201 @@
 <!--
 - [INPUT]: 依赖 https://antigravity.google/changelog 的页面内容
-- [OUTPUT]: 本文档提供 Google Antigravity 的历史版本更新记录整理（中文翻译版）
+- [OUTPUT]: 本文档提供 Google Antigravity 的历史版本更新记录整理
 - [POS]: 更新日志 模块的历史档案之一
 - [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
-# Google Antigravity 更新日志
+# Google Antigravity Changelog
 
-_(数据提取自 https://antigravity.google/changelog，并已翻译为中文)_
-
----
-
-## 1.18.3 - 2026年2月19日
-
-**设置、Artifacts 以及稳定性**
-为模型和终端集成添加了新的设置界面，支持 Artifact 下载，并在全平台的稳定性和 UI 方面进行多项修复。
-
-### 改进项 (6)
-
-- 提供 Gemini 3.1 Pro 模型。
-- 在设置中新增“模型(Models)”界面，提供更直观的配额使用情况展示。
-- 新增开启或关闭终端集成的设置项。
-- 聊天界面现已支持下载 Artifact。
-- 输入框历史记录支持上下方向键导航。
-- 提升了聊天交互的 UI 响应速度，涵盖创建对话、发送消息及撤销更改等操作。
-
-### 修复项 (3)
-
-- 修复了 macOS 上因签名问题导致外部插件加载失败的问题。
-- 修复了 Windows 上某些 Artifact 文件未被正确识别，导致聊天界面缺少“Proceed（继续）”按钮的问题。
-- 修复了撤销操作可能意外删除 agent 刚编辑过的文件的问题。
-
-### 补丁 (0)
+_(数据提取自 https://antigravity.google/changelog)_
 
 ---
 
-## 1.16.5 - 2026年2月3日
+## 1.18.3 - Feb 19, 2026
 
-**Bug 修复**
-多项 Bug 修复与性能提升。
+**Settings, Artifacts, and Stability**
+New settings screens for models and terminal integration, artifact download support, and various stability and UI fixes across platforms.
 
-### 改进项 (1)
+### Improvements (6)
 
-- 提升了 Agent 管理器中 @提及 (mention) 搜索结果的加载速度。
+- Gemini 3.1 Pro availability.
+- Added Models screen to settings, providing more visibility into quota usage.
+- Added a setting to enable or disable terminal integration.
+- Support for downloading artifacts from the chat UI.
+- Up/down arrow key navigation for input box history.
+- Improved UI responsiveness for chat interactions, including creating conversations, sending messages, and reverting changes.
 
-### 修复项 (0)
+### Fixes (3)
 
-### 补丁 (1)
+- Resolved an issue where external plugins could fail to load on macOS due to signing problems.
+- Fixed certain artifact files not being recognized as artifacts and missing the 'Proceed' button in the chat UI on Windows.
+- Fixed an issue where reverting could occasionally delete files edited by the agent.
 
-- 将安全模式（Secure Mode）重命名为严格模式（strict mode）。
-
----
-
-## 1.15.8 - 2026年1月24日
-
-**性能提升**
-针对长对话场景进行了性能优化。
-
-### 补丁 (1)
-
-- 修复了与 agent 进行过长的对话时导致的性能下降问题。
+### Patches (0)
 
 ---
 
-## 1.15.6 - 2026年1月23日
+## 1.16.5 - Feb 3, 2026
 
-**终端沙盒隔离**
-MacOS 用户现在可以在沙盒内执行 agent 的终端命令，以防止对工作区外部的文件造成破坏。
+**Bug Fixes**
+Various bug fixes and performance improvements.
 
-### 改进项 (1)
+### Improvements (1)
 
-- 支持 MacOS 用户在沙盒中执行终端命令。
+- Speed up population of @-mention search results in the Agent Manager
 
----
+### Fixes (0)
 
-## 1.14.2 - 2026年1月13日
+### Patches (1)
 
-**Agent Skills (代理技能)**
-向 Antigravity 引入 Agent Skills 功能，提供更强的自定义能力；同时更新了标签页模型并新增了对话相关的设置项。
-
-### 改进项 (3)
-
-- Antigravity 现已支持 Agent Skills（代理技能）。
-- 更新了标签页模型的底层架构。
-- 新增设置项，允许用户禁用对话历史与知识库 (Knowledge)。
-
-### 修复项 (2)
-
-- 解决了各类 UI 组件中的透明度显示异常问题。
-- 修正了聊天客户端中过度跳转到底部及自动滚动的行为。
+- Renamed Secure Mode to strict mode
 
 ---
 
-## 1.13.3 - 2025年12月19日
+## 1.15.8 - Jan 24, 2026
 
-**Google Workspace 支持**
-为 Google Workspace AI Ultra for Business 订阅用户提供更高且刷新更频繁的频率限制 (Rate limits)。
+**Performance Improvements**
+Performance improvements for long conversations.
 
-### 改进项 (1)
+### Patches (1)
 
-- 为 Google Workspace AI Ultra for Business 订阅用户提供更高且刷新更频繁的请求频率限制。
+- Fixes a bug with long conversations with the agent that caused performance issues.
 
 ---
 
-## 1.12.4 - 2025年12月17日
+## 1.15.6 - Jan 23, 2026
+
+**Terminal Sandboxing**
+MacOS users can now execute agent terminal commands within a sandbox to prevent damage to files outside the workspace.
+
+### Improvements (1)
+
+- Terminal commands can now be executed within a sandbox for MacOS users.
+
+---
+
+## 1.14.2 - Jan 13, 2026
+
+**Agent Skills**
+Introducing agent skills to Antigravity for enhanced customizability, alongside tab model updates and new conversation settings.
+
+### Improvements (3)
+
+- Agent Skills now available in Antigravity
+- Updated tab model architecture.
+- New Settings to allow disabling conversation history and knowledge.
+
+### Fixes (2)
+
+- Resolved transparency issues across various UI components.
+- Corrected overactive jump-to-bottom and autoscroll behavior in the chat client.
+
+---
+
+## 1.13.3 - Dec 19, 2025
+
+**Google Workspace Support**
+Higher, more frequently refreshed rate limits for Google Workspace AI Ultra for Business subscribers.
+
+### Improvements (1)
+
+- Higher, more frequently refreshed rate limits for Google Workspace AI Ultra for Business subscribers.
+
+---
+
+## 1.12.4 - Dec 17, 2025
 
 **Gemini 3 Flash**
-Antigravity 现已支持 Gemini 3 Flash 模型。
+Support for Gemini 3 Flash in Antigravity.
 
-### 改进项 (3)
+### Improvements (3)
 
-- 支持 Gemini 3 Flash。
-- 为 Agent 提供原生的音频支持。
-- 改善了 Agent 管理器以及编辑器长窗口对话的性能。
+- Support for Gemini 3 Flash.
+- Native audio support for the agent.
+- Performance improvements for Agent Manager and for long conversations in editor windows.
 
-### 补丁 (1)
+### Patches (1)
 
-- 将浏览器使用的默认模型切换为 Gemini 3 Flash。
-
----
-
-## 1.11.17 - 2025年12月8日
-
-**安全模式与安全修复**
-新增了安全模式选项，该模式将强制执行特定的配置，防止 agent 自动运行潜在的攻击和破坏操作，并强制所有 agent 操作必须经过人工审批。此外包含多项安全相关的修复。
-
-### 改进项 (1)
-
-- 新增安全模式（Secure mode）选项。
-
-### 修复项 (1)
-
-- 包含了多项安全修复。
+- Switched default browser use model to Gemini 3 Flash.
 
 ---
 
-## 1.11.14 - 2025年12月4日
+## 1.11.17 - Dec 8, 2025
 
-**Google One 支持**
-为 Google AI Pro 及 Ultra 订阅用户提供更高且刷新更频繁的频率限制。
+**Secure Mode and Security Fixes**
+Adding the secure mode option, which enforces certain settings to prevent the agent from autonomously running targeted exploits and requires human review for all agent actions. Various security fixes.
 
-### 改进项 (1)
+### Improvements (1)
 
-- 增加了对 Google One 账号体系的整合支持。
+- Secure mode option.
 
----
+### Fixes (1)
 
-## 1.11.9 - 2025年11月26日
-
-**稳定性与 Bug 修复**
-修复了认证登录流程中的一些 Bug。
-
-### 改进项 (1)
-
-- 在用户引导的认证流程中新增了更为友好的错误状态反馈。
+- Various security fixes.
 
 ---
 
-## 1.11.5 - 2025年11月20日
+## 1.11.14 - Dec 4, 2025
+
+**Google One Support**
+Higher, more frequently refreshed rate limits for Google AI Pro and Ultra subscribers.
+
+### Improvements (1)
+
+- Google One integration.
+
+---
+
+## 1.11.9 - Nov 26, 2025
+
+**Stability and Bug Fixes**
+Bug fixes in the authentication flow.
+
+### Improvements (1)
+
+- Added better error states for onboarding users during authentication flow.
+
+---
+
+## 1.11.5 - Nov 20, 2025
 
 **Nano Banana Pro**
-引入 Nano Banana Pro 版本，agent 现在能够产生更棒的 UI 视觉稿、系统架构图及相关的嵌入式资源展现，且完全基于您现有的代码库和知识库。
+With Nano Banana Pro, our agents have gotten even better at generating UI mockups, system diagrams, or relevant embeddable assets, all grounded in your existing codebase and knowledge.
 
-### 改进项 (1)
+### Improvements (1)
 
-- Nano Banana Pro（逐步推送中）。
+- Nano Banana Pro (incrementally rolling out)
 
-### 修复项 (1)
+### Fixes (1)
 
-- 解决了在未开启任何工作区（Workspaces）的情况下，agent 无法创建草稿/暂存区目录的问题，现在允许自动创建暂存目录。
+- Agent can now create scratch directories if no workspaces are open.
 
-### 补丁 (1)
+### Patches (1)
 
-- 修复了在设置页面中切换遥测（telemetry）选项的一个错误。
-
----
-
-## 1.11.3 - 2025年11月18日
-
-**首发日紧急热修复 (Hotfixes)**
-针对产品发售首日出现的已知问题进行了快速的热更新补丁。
-
-### 修复项 (1)
-
-- 为名字中包含非拉丁字母字符的用户提供了正确的支持。
-
-### 补丁 (1)
-
-- 添加了系统提示信息：现在能够明确区分是“用户个体的配额耗尽”还是“全局服务器容量达到上限”。
+- Fixed an issue with the telemetry settings toggle on the settings page.
 
 ---
 
-## 1.11.2 - 2025年11月18日
+## 1.11.3 - Nov 18, 2025
 
-**Google Antigravity 立项首发**
-Google Antigravity 初始版本正式发布，包含全功能的 AI 增强型 IDE、全新的 Agent 管理器视图、内置 Chrome 流畅体验、多种丰富的增强形态 Artifacts、用户反馈信息流、长期记忆知识管理库（Knowledge）等一系列强大的核心特性。
+**Launch Day Feedback**
+Fast hotfixes to address day one issues.
 
-### 改进项 (1)
+### Fixes (1)
 
-- 发布第一版 Google Antigravity。
+- Support for individuals with non-Latin alphabetic characters in their names.
+
+### Patches (1)
+
+- Messaging to distinguish particular users hitting their user quota limit from all users hitting the global capacity limits.
+
+---
+
+## 1.11.2 - Nov 18, 2025
+
+**Google Antigravity**
+The original launch of Google Antigravity, with a fully-featured AI-powered IDE, new Agent Manager view, an integrated experience with Chrome, broad variety of rich Artifacts, user feedback flows, knowledge management, and much more.
+
+### Improvements (1)
+
+- Google Antigravity
