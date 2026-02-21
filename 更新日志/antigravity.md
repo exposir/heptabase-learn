@@ -11,6 +11,17 @@ _(数据提取自 https://antigravity.google/changelog)_
 
 ---
 
+## 1.18.4 - Feb 21, 2026
+
+**Fix for Windows Auto-updater**
+Bug fixes and stability improvements.
+
+### Fixes (1)
+
+- Fixed an issue where the Windows auto-updater fails to detect new releases. Please manually install the latest update if you are on version 1.16.5 or 1.18.3.
+
+---
+
 ## 1.18.3 - Feb 19, 2026
 
 **Settings, Artifacts, and Stability**
