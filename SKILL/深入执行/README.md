@@ -1,4 +1,4 @@
-# 深度执行协议 (Deep Execution Protocol)
+# 深度压榨 (Deep Execution Protocol)
 
 本目录包含 `深度执行协议` 的中英文版本（`深度执行协议.md` 和 `Deep Execution Protocol.md`）。
 
