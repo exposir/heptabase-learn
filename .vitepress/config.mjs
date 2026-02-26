@@ -5,20 +5,47 @@ export default defineConfig({
   description: "Heptabase 知识图谱的 Git 备份与归档",
   base: "/heptabase-learn/",
   ignoreDeadLinks: true, // 增加死链容错，确保构建必过
-  lastUpdated: true, // 开启最后更新时间，作为常青思维证明
+  lastUpdated: true,
+
+  // 排除含有大量 Vue 模板语法的原始 changelog 文件，避免 Vue 编译器误解析
+  srcExclude: [
+    '**/更新日志/vue/CHANGELOG-3.0.md',
+    '**/更新日志/vue/CHANGELOG-3.1.md',
+    '**/更新日志/vue/CHANGELOG.md',
+    '**/更新日志/react.md',
+  ],
 
   head: [["link", { rel: "icon", href: "/heptabase-learn/favicon.ico" }]],
 
   themeConfig: {
-    outline: "deep", // 大纲支持深化，右侧提供更深层的锚点导航
+    outline: "deep",
     logo: "/logo.svg",
+
+    lastUpdated: {
+      text: '最后更新于',
+      formatOptions: {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      },
+    },
+
+    docFooter: {
+      prev: '上一篇',
+      next: '下一篇',
+    },
+
+    darkModeSwitchLabel: '主题',
+    sidebarMenuLabel: '菜单',
+    returnToTopLabel: '返回顶部',
+    langMenuLabel: '语言',
+    outlineTitle: '本页目录',
     nav: [
       {
         text: "🗂️ 归档浏览",
         items: [
           { text: "前端开发的历史与哲学", link: "/前端开发的历史与哲学/" },
           { text: "RDK 工业实战", link: "/RDK/CLAUDE" },
-          { text: "北安考察", link: "/北安/CLAUDE" },
+          { text: "故乡考察", link: "/故乡/CLAUDE" },
         ],
       },
       {
@@ -155,11 +182,14 @@ export default defineConfig({
               link: "/股票/A股散户生存指南：从认知到实操的完整框架",
             },
             { text: "🗺️ 模块地图", link: "/股票/CLAUDE" },
+            { text: "股票的本质", link: "/股票/股票的本质" },
             { text: "A 股优质资产", link: "/股票/A股优质资产" },
             { text: "A 股只有大宗商品", link: "/股票/A股只有大宗商品" },
             { text: "A 股特种作战报告", link: "/股票/A股特种作战报告" },
             { text: "散户作战原则", link: "/股票/散户作战原则" },
             { text: "散户购买资产建议", link: "/股票/A股散户可以购买的资产" },
+            { text: "普通人非线性财富跃迁指南", link: "/股票/普通人非线性财富跃迁指南" },
+            { text: "穷人翻盘指南", link: "/股票/穷人翻盘指南" },
           ],
         },
         {
@@ -180,20 +210,59 @@ export default defineConfig({
       ],
       "/编程题/": [
         {
-          text: "💻 编程题库",
+          text: "🗺️ 总览",
           items: [
-            { text: "🗺️ 模块地图", link: "/编程题/CLAUDE" },
-            {
-              text: "1.1 JavaScript 核心手写实战",
-              link: "/编程题/1.1 JavaScript 核心手写实战",
-            },
+            { text: "模块地图", link: "/编程题/CLAUDE" },
+            { text: "完整图谱", link: "/编程题/前端工程师场景题与编程题完整图谱" },
+          ],
+        },
+        {
+          text: "第一层：核心手写",
+          items: [
+            { text: "1.1 JavaScript 核心手写实战", link: "/编程题/1.1 JavaScript 核心手写实战" },
             { text: "1.2 异步编程专题", link: "/编程题/1.2 异步编程专题" },
-            {
-              text: "2.2 状态与数据同步的核心挑战",
-              link: "/编程题/2.2 状态与数据同步的核心挑战",
-            },
+            { text: "1.3 数据处理与工具函数", link: "/编程题/1.3 数据处理与工具函数" },
+            { text: "1.4 设计模式实现", link: "/编程题/1.4 设计模式实现" },
+            { text: "1.5 DOM 与事件", link: "/编程题/1.5 DOM 与事件" },
+          ],
+        },
+        {
+          text: "第二层：场景题",
+          items: [
+            { text: "2.2 状态与数据同步", link: "/编程题/2.2 状态与数据同步的核心挑战" },
+            { text: "2.3 大数据与性能", link: "/编程题/2.3 大数据与性能场景" },
+            { text: "2.4 文件处理", link: "/编程题/2.4 文件处理场景" },
+            { text: "2.5 实时通信", link: "/编程题/2.5 实时通信场景" },
+            { text: "2.6 安全与稳定性", link: "/编程题/2.6 安全与稳定性场景" },
+          ],
+        },
+        {
+          text: "第三层：专项深度",
+          items: [
+            { text: "3.1 复杂交互与动画", link: "/编程题/3.1 复杂交互与动画" },
+            { text: "3.2 音视频与媒体", link: "/编程题/3.2 音视频与媒体" },
+            { text: "3.3 编辑器场景", link: "/编程题/3.3 编辑器场景" },
+            { text: "3.4 可视化与图形", link: "/编程题/3.4 可视化与图形" },
             { text: "3.5 工程架构", link: "/编程题/3.5 工程架构" },
-            { text: "全部目录请见左侧地图导航", link: "/编程题/CLAUDE" },
+            { text: "3.6 组件与 SDK 设计", link: "/编程题/3.6 组件与 SDK 设计" },
+            { text: "3.7 监控与可观测性", link: "/编程题/3.7 监控与可观测性" },
+            { text: "3.8 跨端场景", link: "/编程题/3.8 跨端场景" },
+            { text: "3.9 Node.js BFF", link: "/编程题/3.9 Node.js BFF" },
+            { text: "3.10 新技术方向", link: "/编程题/3.10 新技术方向" },
+          ],
+        },
+        {
+          text: "第四层：原理与进阶",
+          items: [
+            { text: "4.1 TypeScript 类型编程", link: "/编程题/4.1 TypeScript 类型编程" },
+            { text: "4.2 框架原理深度", link: "/编程题/4.2 框架原理深度" },
+            { text: "4.3 浏览器原理应用", link: "/编程题/4.3 浏览器原理应用" },
+            { text: "4.4 调试与问题排查", link: "/编程题/4.4 调试与问题排查" },
+            { text: "4.5 稳定性与质量", link: "/编程题/4.5 稳定性与质量" },
+            { text: "4.6 移动端专项", link: "/编程题/4.6 移动端专项" },
+            { text: "4.7 安全专项", link: "/编程题/4.7 安全专项" },
+            { text: "4.8 算法在前端的实际应用", link: "/编程题/4.8 算法在前端的实际应用" },
+            { text: "4.9 国际化与可访问性", link: "/编程题/4.9 国际化与可访问性" },
           ],
         },
       ],
@@ -203,6 +272,7 @@ export default defineConfig({
           items: [
             { text: "🗺️ 模块地图", link: "/算法题/CLAUDE" },
             { text: "前端面试必刷50题", link: "/算法题/前端面试必刷50题" },
+            { text: "为什么二叉树占比高", link: "/算法题/为什么二叉树占比高" },
             { text: "1. 数组与双指针", link: "/算法题/1 数组与双指针（19题）" },
             { text: "2. 链表", link: "/算法题/2 链表（18题）" },
             { text: "3. 二叉树", link: "/算法题/3 二叉树（31题）" },
@@ -215,6 +285,9 @@ export default defineConfig({
           text: "📰 新闻与洞察",
           items: [
             { text: "🗺️ 模块地图", link: "/新闻/CLAUDE" },
+            { text: "2026-02-25", link: "/新闻/2026-02-25" },
+            { text: "2026-02-23", link: "/新闻/2026-02-23" },
+            { text: "2026-02-22", link: "/新闻/2026-02-22" },
             { text: "2026-02-18", link: "/新闻/2026-02-18" },
             { text: "2026-02-17", link: "/新闻/2026-02-17" },
             { text: "2026-02-15", link: "/新闻/2026-02-15" },
@@ -222,20 +295,34 @@ export default defineConfig({
           ],
         },
       ],
-      "/北安/": [
+      "/故乡/": [
         {
-          text: "🌲 北安考察与地理",
+          text: "🌲 故乡考察与地理",
           items: [
-            { text: "🗺️ 模块地图", link: "/北安/CLAUDE" },
+            { text: "🗺️ 模块地图", link: "/故乡/CLAUDE" },
             {
               text: "沾河·五大连池·北安：对比",
-              link: "/北安/沾河·五大连池·北安：古代民族分布对比",
+              link: "/故乡/沾河·五大连池·北安：古代民族分布对比",
             },
             {
               text: "乌裕尔河与蒲峪路",
-              link: "/北安/乌裕尔河与蒲峪路：关联确信度分析",
+              link: "/故乡/乌裕尔河与蒲峪路：关联确信度分析",
             },
-            { text: "小兴安岭腹地穿梭", link: "/北安/小兴安岭林场腹地穿梭" },
+            { text: "小兴安岭腹地穿梭", link: "/故乡/小兴安岭林场腹地穿梭" },
+            {
+              text: "乌裕尔河：古代地位",
+              link: "/故乡/乌裕尔河：古代地位为何高现在为何鲜为人知",
+            },
+            {
+              text: "乌裕尔河在金代可能叫蒲峪河",
+              link: "/故乡/乌裕尔河在金代可能叫做蒲峪河？",
+            },
+            {
+              text: "索伦部与乌裕尔河沾河",
+              link: "/故乡/索伦部与乌裕尔河沾河：东北民族地理深度探究",
+            },
+            { text: "沾河林场独特性", link: "/故乡/沾河林场独特性" },
+            { text: "龙门山", link: "/故乡/龙门山" },
           ],
         },
       ],
@@ -322,6 +409,10 @@ export default defineConfig({
             {
               text: "从冬奥会U型场地到神经科学",
               link: "/TIL/从冬奥会U型场地到神经科学-早教的终极逻辑",
+            },
+            {
+              text: "星巴克店员是否能免费喝咖啡",
+              link: "/TIL/星巴克店员是否能免费喝咖啡",
             },
           ],
         },
@@ -418,7 +509,6 @@ export default defineConfig({
           text: "🔄 系统更新日志",
           items: [
             { text: "🗺️ 模块地图", link: "/更新日志/CLAUDE" },
-            { text: "React 官方更新日志", link: "/更新日志/react" },
             { text: "React更新日志 (中文版)", link: "/更新日志/react-zh" },
             { text: "Antigravity 工具更新", link: "/更新日志/antigravity" },
             {
@@ -430,6 +520,12 @@ export default defineConfig({
               text: "Gemini Agent Skill",
               link: "/更新日志/gemini-agent-skill",
             },
+          ],
+        },
+        {
+          text: "🟢 Vue 更新日志",
+          items: [
+            { text: "Vue CHANGELOG (中文版)", link: "/更新日志/vue/CHANGELOG-zh" },
           ],
         },
       ],

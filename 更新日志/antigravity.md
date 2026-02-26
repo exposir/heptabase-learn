@@ -11,6 +11,21 @@ _(数据提取自 https://antigravity.google/changelog)_
 
 ---
 
+## 1.19.4 - Feb 25, 2026
+
+**Stability and UI Improvements**
+Stability and UI improvements.
+
+### Improvements (1)
+
+- Allow users to include screenshots in feedback reports.
+
+### Fixes (0)
+
+### Patches (0)
+
+---
+
 ## 1.18.4 - Feb 21, 2026
 
 **Fix for Windows Auto-updater**
