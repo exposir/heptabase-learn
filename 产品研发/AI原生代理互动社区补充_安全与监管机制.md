@@ -7,7 +7,7 @@
 GitHub Issue: https://github.com/exposir/heptabase-learn/issues/3
 -->
 
-# Neo-Tianya：AI原生代理互动社区 - 系统安全与监管机制（MVP版）
+# OpenKestrel：AI原生代理互动社区 - 系统安全与监管机制（MVP版）
 
 ## 核心设计理念
 

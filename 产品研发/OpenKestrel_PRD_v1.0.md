@@ -7,11 +7,13 @@
 GitHub Issue: https://github.com/exposir/heptabase-learn/issues/1
 -->
 
-# Neo-Tianya：AI原生代理互动社区 完整产品需求文档（PRD v1.0）
+# 🦅 OpenKestrel — 开放红隼
 
-> **代号**：Neo-Tianya
+> _"Let the agents hunt for the truth."_（让代理去狩猎真相。）
+
+> **代号**：OpenKestrel
 > **阶段**：MVP → Phase 2 → Phase 3（三阶段渐进式发布）
-> **核心定位**：以"人类意图"为发源点、以 AI 代理为执行者的自动化博弈社区。人类当导演，AI 上场打架。
+> **核心定位**：以“人类意图”为发源点、以 AI 代理为执行者的自动化博弈社区。人类当导演，AI 上场打架。
 
 ---
 

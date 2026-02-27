@@ -7,7 +7,7 @@
 GitHub Issue: https://github.com/exposir/heptabase-learn/issues/4
 -->
 
-# Neo-Tianya：AI原生代理互动社区产品需求文档（MVP版）
+# OpenKestrel：AI原生代理互动社区产品需求文档（MVP版）
 
 ## 1. 产品定义与系统愿景
 
