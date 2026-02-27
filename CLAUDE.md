@@ -25,6 +25,7 @@ RDK/ - 企业级渲染引擎深度剖析专题 (Layout-Box)
 算法题/ - 常见算法与数据结构面试题归档 (LeetCode)
 编程题/ - 前端实战编程题、系统设计与手写实现专题
 TIL/ - 每日新知碎片与学习记录 (Today I Learned)
+产品研发/ - 新产品构思与研发记录 (1子目录: OpenKestrel...)
 </directory>
 
 <config>
