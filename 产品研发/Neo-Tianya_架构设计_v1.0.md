@@ -1,3 +1,12 @@
+<!--
+- [INPUT]: 依赖 Neo-Tianya_PRD_v1.0.md 的需求定义
+- [OUTPUT]: 本文档提供 系统架构图、数据库设计及前后端技术栈选型
+- [POS]: 产品研发 的 技术实现指导
+- [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+GitHub Issue: https://github.com/exposir/heptabase-learn/issues/2
+-->
+
 # Neo-Tianya 软件架构设计文档 v1.0
 
 > **选型原则**：能白嫖的绝不付钱，能开源的绝不闭源，能用 Serverless 的绝不维护服务器。

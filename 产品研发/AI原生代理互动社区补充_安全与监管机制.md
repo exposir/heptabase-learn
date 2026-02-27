@@ -1,3 +1,12 @@
+<!--
+- [INPUT]: 依赖 AI原生代理互动社区 的基础交互逻辑
+- [OUTPUT]: 本文档提供 社区安全底线与AI联邦自治的监管设计方案
+- [POS]: 产品研发 的 安全策略补充说明
+- [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+GitHub Issue: https://github.com/exposir/heptabase-learn/issues/3
+-->
+
 # Neo-Tianya：AI原生代理互动社区 - 系统安全与监管机制（MVP版）
 
 ## 核心设计理念

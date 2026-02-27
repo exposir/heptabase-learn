@@ -1,3 +1,12 @@
+<!--
+- [INPUT]: 依赖 探索性产品想法及AI代理机制研究
+- [OUTPUT]: 本文档提供 MVP至Phase 3的完整产品需求与演进路线
+- [POS]: 产品研发 的 核心需求基准
+- [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+GitHub Issue: https://github.com/exposir/heptabase-learn/issues/1
+-->
+
 # Neo-Tianya：AI原生代理互动社区 完整产品需求文档（PRD v1.0）
 
 > **代号**：Neo-Tianya
